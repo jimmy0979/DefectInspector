@@ -1,6 +1,7 @@
 #include "mainForm.h"
 
 #include <time.h>
+#include <sstream>
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -41,11 +42,14 @@ System::Void mainForm::mainForm_Load(System::Object ^ sender, System::EventArgs 
 System::Void mainForm::btnConnectSql_Click(System::Object ^ sender, System::EventArgs ^ e) {
     // click to connect
     // connect to dataBase
-    connectToDb();
+    // connectToDb();
 
-    // TODO : use multi-thread to deal with connectToDb(),
-    //          or it will cause GUI react like "no response"
-    // Thread^ thr1 = gcnew ::Thread(gcnew::Threading::ThreadStart(connectToDb));
+    // use another thread to deal with connectToDb(),
+    //      or it will cause GUI react like "no response"
+    
+    Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::connectToDb));
+    thr1->Start();
+    // thr1->Join();
 }
 
 System::Void mainForm::imgMap_MouseDown(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e) {
@@ -69,6 +73,13 @@ System::Void mainForm::imgMap_MouseDown(System::Object ^ sender, System::Windows
 //---------------------------------------------------------------------
 // Datbase related
 System::Void mainForm::connectToDb(System::Void) {
+    // TODO : warp the statement here in <Class> SqlCommunicator
+    //                  to make it more simply to operate the database
+
+    // collects info. that needs to update to a element in ui
+    // will later call delegate to help display the info. on the element
+    String^ resInfo;
+
     // the return state of each ODBC command, initialize to Success
     SQLRETURN retCode = SQL_SUCCESS;
 
@@ -92,7 +103,6 @@ System::Void mainForm::connectToDb(System::Void) {
     for (int i = 0;; i++) {
         retCode = SQLFetch(hstmt);
         if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO) {
-            // cout << i + 1 << " : " << "( " << diex << ", " << diey << " )" << endl;
             if (region > Dies.size()) {
                 if (region >= 2) {
                     Map->paint(region - 2, each);
@@ -115,7 +125,8 @@ System::Void mainForm::connectToDb(System::Void) {
 
     // the consuming time used to load data
     float cost = (float)(clock() - start) / CLOCKS_PER_SEC;
-    lblInfo->Text = cost.ToString() + "\n";
+    
+    resInfo = cost.ToString() + "\n";
 
     // default area = 0 in Painter
     start = clock();
@@ -123,12 +134,62 @@ System::Void mainForm::connectToDb(System::Void) {
     for (int i = 0; i < Dies[area].size(); i++) {
         ROI->paint(Dies[area][i].first, Dies[area][i].second);
     }
-    imgROI->Image = MatToBitmap(ROI->returnMat());
-    imgMap->Image = MatToBitmap(Map->returnMat());
+    
+    if (this->InvokeRequired) {
+        UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
+        UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
+        
+        uiMapper->Invoke(MatToBitmap(Map->returnMat()));
+        uiPainter->Invoke(MatToBitmap(ROI->returnMat()));
+    }
+    else {
+        imgROI->Image = MatToBitmap(ROI->returnMat());
+        imgMap->Image = MatToBitmap(Map->returnMat());
+    }
+
 
     // the consuming time that used to paint die on region 0
     cost = (float)(clock() - start) / CLOCKS_PER_SEC;
-    lblInfo->Text += cost.ToString() + "\n";
+    resInfo += cost.ToString() + "\n";
+
+    // TODO : make String^ in other thread can be used in main thread's ui lblInfo
+    // BUG  : System.InvalidOperationException: '跨執行緒作業無效: 存取控制項 'lblInfo' 時所使用的執行緒與建立控制項的執行緒不同。'
+    if (this->InvokeRequired) {
+        UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
+        uiInfo->Invoke(resInfo, 0);
+    }
+    else {
+        // convert string to String^ in CLR
+        // lblInfo->Text = gcnew String(text.c_str());
+        lblInfo->Text = resInfo;
+    }
+}
+
+//---------------------------------------------------------------------
+
+System::Void mainForm::UpdateMapperBitmap(Bitmap^ uImage) {
+    imgMap->Image = uImage;
+}
+
+System::Void mainForm::UpdatePainterBitmap(Bitmap^ uImage) {
+    imgROI->Image = uImage;
+}
+
+System::Void mainForm::UpdateInfoText(String^ uText, int mode) {
+    // update text in different way by its mode
+    // mode (0, 1) = (overwrite, append)
+
+    switch (mode) {
+    case 0:
+        lblInfo->Text = uText;
+        break;
+    case 1:
+        lblInfo->Text += uText;
+        break;
+    default:
+        lblInfo->Text = uText;
+        break;
+    }
 }
 
 //---------------------------------------------------------------------

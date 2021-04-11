@@ -15,14 +15,16 @@ using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Drawing;
 
-public
-ref class mainForm : public System::Windows::Forms::Form {
-    public:
+public ref class mainForm : public System::Windows::Forms::Form {
+private: 
+    delegate void UpdateImage(Bitmap^ uImage);
+    delegate void UpdateText(String^ uText, int mode);
+public:
     mainForm(void) {
         InitializeComponent();
     }
 
-    protected:
+protected:
     ~mainForm() {
         if (components) {
             delete components;
@@ -121,5 +123,10 @@ ref class mainForm : public System::Windows::Forms::Form {
     System::Void imgMap_MouseDown(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e);
 
     System::Void connectToDb(System::Void);
+
+    // for delegate use
+    System::Void UpdateMapperBitmap(Bitmap^ uImage);
+    System::Void UpdatePainterBitmap(Bitmap^ uImage);
+    System::Void UpdateInfoText(String^ uText, int mode);
 };
 }   // namespace DefectInspector
