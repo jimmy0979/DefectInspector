@@ -52,6 +52,14 @@ System::Void mainForm::btnConnectSql_Click(System::Object ^ sender, System::Even
     // thr1->Join();
 }
 
+System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs^ e) {
+    // connect to database with its ConnectString
+    SqlCommunicator* sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+    // make a query and get the statmentHandle
+    // TODO
+    SQLHSTMT hstmt = sql->sqlQuery(L"UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL] SET[LOT_ID] = 131 WHERE[DieX] = 131 AND[DieY] = 31; ");
+}
+
 System::Void mainForm::imgMap_MouseDown(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e) {
     // trigger function
     // whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
@@ -152,17 +160,17 @@ System::Void mainForm::connectToDb(System::Void) {
     cost = (float)(clock() - start) / CLOCKS_PER_SEC;
     resInfo += cost.ToString() + "\n";
 
-    // TODO : make String^ in other thread can be used in main thread's ui lblInfo
-    // BUG  : System.InvalidOperationException: '跨執行緒作業無效: 存取控制項 'lblInfo' 時所使用的執行緒與建立控制項的執行緒不同。'
-    if (this->InvokeRequired) {
-        UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
-        uiInfo->Invoke(resInfo, 0);
-    }
-    else {
-        // convert string to String^ in CLR
-        // lblInfo->Text = gcnew String(text.c_str());
-        lblInfo->Text = resInfo;
-    }
+    //// TODO : make String^ in other thread can be used in main thread's ui lblInfo
+    //// BUG  : System.InvalidOperationException: '跨執行緒作業無效: 存取控制項 'lblInfo' 時所使用的執行緒與建立控制項的執行緒不同。'
+    //if (this->InvokeRequired) {
+    //    UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
+    //    uiInfo->Invoke(resInfo, 0);
+    //}
+    //else {
+    //    // convert string to String^ in CLR
+    //    // lblInfo->Text = gcnew String(text.c_str());
+    //    lblInfo->Text = resInfo;
+    //}
 }
 
 //---------------------------------------------------------------------
