@@ -6,6 +6,7 @@
 
 using namespace DefectInspector;
 using namespace System::Threading;
+using namespace System::Data::SqlClient;
 
 //===============================
 // Global Variables Declartion
@@ -50,17 +51,95 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 
 //---------------------------------------------------------------------
 
+int String2Int(String^ number) {
+	const char* chars = (const char*)(System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(number)).ToPointer();
+	string dest = chars;
+
+	int res = 0;
+	for (int i = 0; i <dest.size(); i++) {
+		res *= 10;
+		res += (dest[i] - 48);
+	}
+	return res;
+}
+
 System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::EventArgs^ e) {
-	// click to connect
-	// connect to dataBase
-	// connectToDb();
+	//// click to connect
+	//// connect to dataBase
+	//// connectToDb();
 
-	// use another thread to deal with connectToDb(),
-	//      or it will cause GUI react like "no response"
+	//// use another thread to deal with connectToDb(),
+	////      or it will cause GUI react like "no response"
 
-	Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::connectToDb));
-	thr1->Start();
-	// thr1->Join();
+	//Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::connectToDb));
+	//thr1->Start();
+	//// thr1->Join();
+
+	String^ connetionString = L"Server= localhost; Database= test; Integrated Security = SSPI;";
+	SqlConnection^ connection = gcnew SqlConnection(connetionString);
+	
+	String^ sql = L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE Region < 10";
+	
+	
+	try
+	{
+		connection->Open();
+		SqlCommand^ command = gcnew SqlCommand(sql, connection);
+		SqlDataReader^ dataReader = command->ExecuteReader();
+
+		int each = 0;
+		int region = 0;
+		while (dataReader->Read())
+		{
+			// lblInfo->Text = (dataReader->GetValue(0) + " - " + dataReader->GetValue(1) + " - " + dataReader->GetValue(2));
+			region = String2Int(dataReader->GetValue(0)->ToString());
+			int diex = String2Int(dataReader->GetValue(1)->ToString());
+			int diey = String2Int(dataReader->GetValue(2)->ToString());
+
+			if (region > Dies.size()) {
+				if (region >= 2) {
+					Map->paint(region - 2, each);
+					each = 0;
+				}
+				Dies.push_back({});
+
+			}
+			
+			Dies[region - 1].push_back({ diex, diey });
+			each++;
+			
+		}
+
+		if (each > 0) {
+			Map->paint(region - 1, each);
+			each = 0;
+		}
+
+		dataReader->Close();
+		// command->Dispose();
+		connection->Close();
+
+		int area = 0;
+		for (int i = 0; i < Dies[area].size(); i++) {
+			ROI->paint(Dies[area][i].first, Dies[area][i].second);
+		}
+
+		if (this->InvokeRequired) {
+			UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
+			UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
+
+			uiMapper->Invoke(MatToBitmap(Map->returnMat()));
+			uiPainter->Invoke(MatToBitmap(ROI->returnMat()));
+		}
+		else {
+			imgROI->Image = MatToBitmap(ROI->returnMat());
+			imgMap->Image = MatToBitmap(Map->returnMat());
+		}
+
+	}
+	catch (Exception^ ex)
+	{
+	}
 }
 
 System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs^ e) {
