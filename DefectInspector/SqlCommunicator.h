@@ -8,6 +8,8 @@
 #include <sqlext.h>
 #include <sqltypes.h>
 
+#include <string>
+
 using namespace std;
 
 #define SQL_RESULT_LEN 240
@@ -15,29 +17,34 @@ using namespace std;
 
 class SqlCommunicator {
 private:
-    // PROPERTIES
-    // define handles and variables
-    SQLHANDLE sqlConnHandle;
-    SQLHANDLE sqlStmtHandle;
-    SQLHANDLE sqlEnvHandle;
-    SQLWCHAR retconstring[SQL_RETURN_CODE_LEN];
+	// PROPERTIES
+	// define handles and variables
+	SQLHANDLE sqlConnHandle;
+	SQLHANDLE sqlStmtHandle;
+	SQLHANDLE sqlEnvHandle;
+	SQLWCHAR retconstring[SQL_RETURN_CODE_LEN];
 
-    // the return state of each ODBC command
-    SQLRETURN retCode;
+	// the return state of each ODBC command
+	SQLRETURN retCode;
+
+	// the flag whether (this)sqlCommunicator is connect to a database successfully
+	bool isConnect;
 
 public:
-    // constructor
-    SqlCommunicator(const wchar_t* sqlConnectStr);
-    // disconstructor : disconnect with server
-    ~SqlCommunicator();
+	// constructor
+	SqlCommunicator(const wchar_t* sqlConnectStr);
+	// disconstructor : disconnect with server
+	~SqlCommunicator();
 
-    // COMMUNICATION
-    // return the statementText of the sqlQueryStr
-    SQLHSTMT sqlQuery(const wchar_t* sqlQueryStr);
-    // close the connection to database
-    void close();
+	// COMMUNICATION
+	// return the statementText of the sqlQueryStr
+	SQLHSTMT sqlCommand(const wchar_t* sqlQueryStr);
+	// setup the info of columns from HSTMT
+	void sqlBindCol(int column);
+	// close the connection to database
+	void close();
 
-    // STATUS
-    // print the represented status of retCode
-    void status(SQLRETURN retCode);
+	// STATUS
+	// print the represented status of retCode
+	string status(SQLRETURN retCode);
 };

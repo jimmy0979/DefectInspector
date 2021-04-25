@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Entry Point of the whole Project 
+ * Entry Point of the whole Project
  * Will new a mainForm to start a windows
  *******************************************************************************/
 
@@ -7,10 +7,10 @@
 #include "mainForm.h"
 
 namespace DefectInspector {
-	
+
 	using namespace System;
 	using namespace System::Windows::Forms;
-	
+
 	[STAThreadAttribute]
 	void main(cli::array<String^>^ args) {
 		Application::EnableVisualStyles();
