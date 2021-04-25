@@ -7,6 +7,7 @@
 #include <sql.h>
 #include <sqlext.h>
 #include <sqltypes.h>
+#include <string>
 
 using namespace std;
 
@@ -39,5 +40,5 @@ public:
 
     // STATUS
     // print the represented status of retCode
-    void status(SQLRETURN retCode);
+    string status(SQLRETURN retCode);
 };
