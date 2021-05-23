@@ -24,10 +24,13 @@
     <ClCompile Include="SqlCommunicator.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="DiePainter.cpp">
+    <ClCompile Include="DataController.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="DieMapper.cpp">
+    <ClCompile Include="ROI.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,10 +41,13 @@
     <ClInclude Include="SqlCommunicator.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="DiePainter.h">
+    <ClInclude Include="DataController.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="DieMapper.h">
+    <ClInclude Include="ROI.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,8 +2,9 @@
 
 #include <windows.h>
 
-#include "DieMapper.h"
-#include "DiePainter.h"
+#include "Map.h"
+#include "ROI.h"
+#include "DataController.h"
 #include "SqlCommunicator.h"
 
 namespace DefectInspector {
@@ -127,7 +128,7 @@ private: System::Windows::Forms::Button^ btnUpdate;
         // 
         // mainForm
         // 
-        this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
+        this->AutoScaleDimensions = System::Drawing::SizeF(9, 19);
         this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
         this->ClientSize = System::Drawing::Size(1297, 980);
         this->Controls->Add(this->btnUpdate);

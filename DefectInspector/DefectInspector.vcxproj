@@ -131,18 +131,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DieMapper.cpp" />
-    <ClCompile Include="DiePainter.cpp" />
+    <ClCompile Include="DataController.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainForm.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="ROI.cpp" />
     <ClCompile Include="SqlCommunicator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DieMapper.h" />
-    <ClInclude Include="DiePainter.h" />
+    <ClInclude Include="DataController.h" />
     <ClInclude Include="mainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="ROI.h" />
     <ClInclude Include="SqlCommunicator.h" />
   </ItemGroup>
   <ItemGroup>

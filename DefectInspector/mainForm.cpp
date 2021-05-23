@@ -11,9 +11,9 @@ using namespace System::Threading;
 // Global Variables Declartion
 
 // OpenCV MAT Image
-DiePainter* ROI;
-DieMapper* Map;
-vector<vector<pair<int, int>>> Dies;
+ROI* roi;
+Map* die_map;
+DataControlUnit* data_controller;
 
 // SQL Server Connect
 SqlCommunicator* sql = nullptr;
@@ -40,8 +40,9 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// initial Painter, Mapper
-		ROI = new DiePainter(900, 900);
-		Map = new DieMapper();
+		roi = new ROI(900, 900);
+		die_map = new Map();
+		data_controller = new DataControlUnit;
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -117,27 +118,17 @@ System::Void mainForm::connectToDb(System::Void) {
 
 	// put each info into dataStructure
 	clock_t start = clock();
-	int each = 0;
+
 	while (true) {
 		// the return state of each ODBC command
 		SQLRETURN retCode = SQLFetch(hstmt);
 
-		if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO) {
-			if (region > Dies.size()) {
-				if (region >= 2) {
-					Map->paint(region - 2, each);
-					each = 0;
-				}
-				Dies.push_back({});
-			}
-
-			Dies[region - 1].push_back({ diex, diey });
-			each++;
+		if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO) 
+		{
+			data_controller->put_data(diex, diey, 255);
 		}
-		else {
-			Map->paint(region - 1, each);
-			each = 0;
-
+		else 
+		{
 			break;
 		}
 	}
