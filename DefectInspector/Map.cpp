@@ -23,22 +23,24 @@ void Map::paint_line(const int &divide)
 	}
 }
 
-Mat Map::paint_square(const int& x, const int& y, Mat origin_img)
+Mat Map::paint_square(const int& x, const int& y)
 {
-	rectangle(origin_img, Rect(x * map_L / 10, y * map_L / 10, map_W / 10, map_L / 10), Scalar(255,0,0));
-	return origin_img;
+	Mat temp;
+	img.copyTo(temp);
+	rectangle(temp, Rect(x * map_W / 10, y * map_L / 10, map_W / 10, map_L / 10), Scalar(255,0,0));
+	return temp;
 }
 
-Mat Map::show(const vector< Paint_Unit>& data)
+Mat Map::show(const vector< Paint_Unit>& data,const int& x,const int&y)
 {
 	Map::img = Scalar(0,255,0);
 	for (int i = 0; i < data.size(); i++)
 		rectangle(Map::img, Rect(data[i].paintx * map_W/10, data[i].painty * map_L/10, map_W/10, map_L/10), data[i].color, -1);
 	Map::paint_line(10);
-	return paint_square(0,0,Map::img);
+	return paint_square(x,y);
 }
 
 Mat Map::relocate(const int& x, const int& y, const int& level)
 {
-	return paint_square(x,y,Map::img);
+	return paint_square(x,y);
 }

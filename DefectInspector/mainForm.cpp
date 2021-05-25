@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string>
 #include <sstream>
+#include <vector>
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -14,6 +15,7 @@ using namespace System::Threading;
 ROI* roi;
 Map* die_map;
 DataControlUnit* data_controller;
+vector<paint_unit> paint_buffer;
 
 // SQL Server Connect
 SqlCommunicator* sql = nullptr;
@@ -141,16 +143,19 @@ System::Void mainForm::connectToDb(System::Void) {
 
 	// default area = 0 in Painter
 	start = clock();
+	/*
 	int area = 0;
 	for (int i = 0; i < Dies[area].size(); i++) {
 		ROI->paint(Dies[area][i].first, Dies[area][i].second);
 	}
+	*/
 
-	if (this->InvokeRequired) {
+	if (this->InvokeRequired) 
+	{
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
 		UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
-
-		uiMapper->Invoke(MatToBitmap(Map->returnMat()));
+		paint_buffer = data_controller->pulldata(false);
+		uiMapper->Invoke(MatToBitmap(die_map->returnMat(paint_buffer,data_controller->return)));
 		uiPainter->Invoke(MatToBitmap(ROI->returnMat()));
 	}
 	else {

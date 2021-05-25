@@ -10,9 +10,9 @@ using namespace std;
 
 typedef struct Paint_Unit
 {
-	__int64 paintx, painty;
+	int paintx, painty;
 	cv::Scalar color;
-	Paint_Unit(__int64 x, __int64 y, cv::Scalar c) :paintx(x), painty(y), color(c) {}
+	Paint_Unit(int x, int y, cv::Scalar c) :paintx(x), painty(y), color(c) {}
 }paint_unit;
 
 class DataControlUnit
@@ -20,30 +20,35 @@ class DataControlUnit
 private:
 	typedef	struct Data_Unit
 	{
-		__int64 diex, diey;
-		__int64 defeat_type;
+		int diex, diey;
+		int defeat_type;
 		string bin_code;//5 digts
-		struct Data_Unit* pre = nullptr;
-		struct Data_Unit* next = nullptr;
-		Data_Unit(const __int64& x,const __int64& y,const __int64& defeat) :diex(x), diey(y), defeat_type(defeat){}
-		Data_Unit(const __int64& x,const __int64& y,const __int64& defeat,const string& bin) :diex(x), diey(y),defeat_type(defeat),bin_code(bin){}
+		Data_Unit(const int& x,const int& y,const int& defeat) :diex(x), diey(y), defeat_type(defeat){}
+		Data_Unit(const int& x,const int& y,const int& defeat,const string& bin) :diex(x), diey(y),defeat_type(defeat),bin_code(bin){}
 	}data_unit;
-	data_unit* index[1000000] = {nullptr};
+	data_unit** index = nullptr;
 	int level = 0;
 	//curr loaction at different level¡Y©Òµ•Ø≈
-	__int64 level_0_x = 0, level_0_y = 0;
-	__int64 level_1_x = 0, level_1_y = 0;
-	__int64 level_2_x = 0, level_2_y = 0;
+	int level_0_x = 0, level_0_y = 0;
+	int level_1_x = 0, level_1_y = 0;
+	int level_2_x = 0, level_2_y = 0;
 	//temp varible
-	__int64 count_level_0[100] = {0};
-	__int64 count_level_1[10000] = {0};
-	__int64 count_level_2[1000000] = {0};
+	int count_level_0[100] = {0};
+	int count_level_1[10000] = {0};
+	int count_level_2[1000000] = {0};
 	//ignore
 	void create_floder();
+	bool map_change = false;
 public:
 	const int return_level(void) { return level;}
-	System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
-	void put_data(const __int64&, const __int64&, const __int64&, const string&);//take data from sqlcommuncator into datacontroller(with bincode input)
-	void put_data(const __int64&, const __int64&, const __int64&);//(no bincode for test)
+	//System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
+	void put_data(const int&, const int&, const int&, const string&);//take data from sqlcommuncator into datacontroller(with bincode input)
+	void put_data(const int&, const int&, const int&);//(no bincode for test)
 	vector<paint_unit> pull_data(const bool&);
+	bool change_level(const bool&);
+	bool change_block(const int&);
+	bool return_map_change(void);
+	const int return_locat_x(void);
+	const int return_locat_y(void);
+	DataControlUnit() { index = new data_unit * [100000000]; };
 };
