@@ -15,8 +15,11 @@ clock_t start, end_time;
 
 int main(void)
 {
+	double defeat_rate = 0.1;
+	cout << "input defeat rate:";
+	cin >> defeat_rate;
 	default_random_engine generator;
-	bernoulli_distribution distribution(0.1);
+	bernoulli_distribution distribution(defeat_rate);
 	int key_value=-1;
 	cv::Mat control = cv::imread("controlPanel.jpg");
 	start = clock();

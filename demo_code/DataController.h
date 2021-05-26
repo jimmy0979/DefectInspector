@@ -12,7 +12,7 @@ typedef struct Paint_Unit
 {
 	int paintx, painty;
 	cv::Scalar color;
-	Paint_Unit(__int64 x, __int64 y, cv::Scalar c) :paintx(x), painty(y), color(c) {}
+	Paint_Unit(int x, int y, cv::Scalar c) :paintx(x), painty(y), color(c) {}
 }paint_unit;
 
 class DataControlUnit
