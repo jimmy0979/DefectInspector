@@ -35,8 +35,8 @@ int main(void)
 	cout << "push_back():" << ((double)(end_time - start)) / CLOCKS_PER_SEC << "s\n";
 	start = clock();
 	cv::imshow("controlPanel",control);
-	cv::imshow("Map", die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
 	cv::imshow("ROI", roi->show(data_controller->pull_data(true), data_controller->return_level()));
+	cv::imshow("Map", die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
 	end_time = clock();
 	cout << "initial time:" << ((double)(end_time - start)) / CLOCKS_PER_SEC << "s\n";
 	cv::setMouseCallback("controlPanel", on_mouse, 0);
