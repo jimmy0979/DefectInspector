@@ -29,14 +29,14 @@ void DataControlUnit::create_floder()
 
 void DataControlUnit::put_data(const int& x, const int& y,const int &defeat, const string& bincode)
 {
-	if (index[y * 10000 + x] == nullptr)
+	if (index[y][x] == nullptr)
 	{
-		index[y * 10000 + x] = new data_unit(x, y, defeat, bincode);
+		index[y][x] = new data_unit(x, y, defeat, bincode);
 	}
 	else
 	{
-		index[y * 10000 + x]->bin_code = bincode;
-		index[y * 10000 + x]->defeat_type = defeat;
+		index[y][x]->bin_code = bincode;
+		index[y][x]->defeat_type = defeat;
 	}
 }
 void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
@@ -44,13 +44,13 @@ void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
 	count_level_0[(y / 1000) * 10 + (x / 1000)]++;
 	count_level_1[(y / 100) * 100 + (x / 100)]++;
 	count_level_2[(y / 10) * 1000 + (x / 10)]++;
-	if (index[y * 10000 + x] == nullptr)
+	if (index[y][x] == nullptr)
 	{
-		index[y * 10000 + x] = new data_unit(x, y, defeat);
+		index[y][x] = new data_unit(x, y, defeat);
 	}
 	else
 	{
-		index[y * 10000 + x]->defeat_type = defeat;
+		index[y][x]->defeat_type = defeat;
 	}
 }
 
@@ -59,34 +59,36 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 	vector<paint_unit> output;
 	data_unit* temp;
 	int start_x ,start_y; 
+	double percent;
+	cv::Scalar c;
 	if (for_roi)
 	{
 		if (level == 2)
 		{
-			start_x = level_0_x * 1000 + level_1_x * 100 + level_2_x;
-			start_y = level_0_y * 1000 + level_1_y * 100 + level_2_y;
+			start_x = level_0_x * 1000 + level_1_x * 100 + level_2_x * 10;
+			start_y = level_0_y * 1000 + level_1_y * 100 + level_2_y * 10;
 			for (int i = 0; i < 10; i++)
 			{
 				for (int j = 0; j < 10; j++)
 				{
-					if (index[(start_y + i) * 10000 + start_x + j] != nullptr)
+					if (index[start_y+i][start_x+j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 255, 0)));
+						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
 					}
 				}
 			}
 		}
 		else if (level == 1)
 		{
-			start_x = level_0_x * 1000 + level_1_x;
-			start_y = level_0_y * 1000 + level_1_y;
+			start_x = level_0_x * 1000 + level_1_x * 100;
+			start_y = level_0_y * 1000 + level_1_y * 100;
 			for (int i = 0; i < 100; i++)
 			{
 				for (int j = 0; j < 100; j++)
 				{
-					if (index[(start_y + i) * 10000 + start_x + j] != nullptr)
+					if (index[start_y + i][start_x + j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 255, 0)));
+						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
 					}
 				}
 			}
@@ -99,9 +101,9 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0; j < 1000; j++)
 				{
-					if (index[(start_y + i) * 10000 + start_x + j] != nullptr)
+					if (index[start_y + i][start_x + j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 255, 0)));
+						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
 					}
 				}
 			}
@@ -115,7 +117,32 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					output.push_back(paint_unit(j, i, cv::Scalar((double)(count_level_1[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100 * 255, (double)(100 - count_level_1[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100 * 255, 0)));
+					percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
+					if (percent > 0.49)
+					{
+						c = cv::Scalar(0, 0, 255);
+					}
+					else if (percent > 0.25)
+					{
+						c = cv::Scalar(80, 80, 255);
+					}
+					else if (percent > 0.125)
+					{
+						c = cv::Scalar(102, 102, 255);
+					}
+					else if (percent > 0.0625)
+					{
+						c = cv::Scalar(204, 204, 255);
+					}
+					else if (percent > 0.03125)
+					{
+						c = cv::Scalar(204, 255, 255);
+					}
+					else
+					{
+						c = cv::Scalar(0, 255, 0);
+					}
+					output.push_back(paint_unit(j, i, c));
 				}
 			}
 		}
@@ -125,7 +152,32 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					output.push_back(paint_unit(j, i, cv::Scalar((double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000 * 255, (double)(10000 - count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000 * 255, 0)));
+					percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
+					if (percent > 0.49)
+					{
+						c = cv::Scalar(0, 0, 255);
+					}
+					else if (percent > 0.25)
+					{
+						c = cv::Scalar(80, 80, 255);
+					}
+					else if (percent > 0.125)
+					{
+						c = cv::Scalar(102, 102, 255);
+					}
+					else if (percent > 0.0625)
+					{
+						c = cv::Scalar(204, 204, 255);
+					}
+					else if (percent > 0.03125)
+					{
+						c = cv::Scalar(204, 255, 255);
+					}
+					else
+					{
+						c = cv::Scalar(0, 255, 0);
+					}
+					output.push_back(paint_unit(j, i, c));
 				}
 			}
 		}
@@ -135,7 +187,32 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0; j < 10; j++)
 				{
-					output.push_back(paint_unit(j, i, cv::Scalar((double)(count_level_0[i * 10 + j]) / 10000 * 255, (double)(10000 - count_level_0[i * 10 + j]) / 10000 * 255, 0)));
+					percent = (double)(count_level_0[i * 10 + j]) / 1000000;
+					if (percent > 0.49)
+					{
+						c = cv::Scalar(0, 0, 255);
+					}
+					else if (percent > 0.25)
+					{
+						c = cv::Scalar(80, 80, 255);
+					}
+					else if (percent > 0.125)
+					{
+						c = cv::Scalar(102,102 , 255);
+					}
+					else if (percent > 0.0625)
+					{
+						c = cv::Scalar(204, 204, 255);
+					}
+					else if (percent > 0.03125)
+					{
+						c = cv::Scalar(204, 255, 255);
+					}
+					else
+					{
+						c = cv::Scalar(0, 255, 0);
+					}
+					output.push_back(paint_unit(j, i, c));
 				}
 			}
 		}
@@ -191,7 +268,7 @@ bool DataControlUnit::change_block(const int& direction)
 				if (level_0_x == 0)
 					return false;
 				map_change = true;
-				level_1_x == 9;
+				level_1_x = 9;
 				level_0_x--;
 			}
 			else
@@ -238,7 +315,7 @@ bool DataControlUnit::change_block(const int& direction)
 				if (level_0_x == 9)
 					return false;
 				map_change = true;
-				level_1_x == 0;
+				level_1_x = 0;
 				level_0_x++;
 			}
 			else
@@ -285,7 +362,7 @@ bool DataControlUnit::change_block(const int& direction)
 				if (level_0_y == 0)
 					return false;
 				map_change = true;
-				level_1_y == 9;
+				level_1_y = 9;
 				level_0_y--;
 			}
 			else
@@ -332,7 +409,7 @@ bool DataControlUnit::change_block(const int& direction)
 				if (level_0_y == 9)
 					return false;
 				map_change = true;
-				level_1_y == 0;
+				level_1_y = 0;
 				level_0_y++;
 		}
 		else
@@ -373,22 +450,34 @@ bool DataControlUnit::return_map_change(void)
 	DataControlUnit::map_change = false;
 	return result;
 }
-
 const int DataControlUnit::return_locat_x(void)
 {
 	if (level == 0)
+	{
 		return level_0_x;
+	}
 	else if (level == 1)
+	{
 		return level_1_x;
+	}
 	else
+	{
 		return level_2_x;
+	}
 }
+
 const int DataControlUnit::return_locat_y(void)
 {
 	if (level == 0)
+	{
 		return level_0_y;
+	}
 	else if (level == 1)
+	{
 		return level_1_y;
+	}
 	else
+	{
 		return level_2_y;
+	}
 }

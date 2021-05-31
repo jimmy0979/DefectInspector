@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <random>
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -39,12 +40,37 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 	// mainForm_load
 	try {
 		// connect to database with its ConnectString
-		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+		// sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// initial Painter, Mapper
 		roi = new ROI(900, 900);
 		die_map = new Map();
 		data_controller = new DataControlUnit;
+
+		// TEMP TEST
+		double defeat_rate = 0.1;
+
+		default_random_engine generator;
+		bernoulli_distribution distribution(defeat_rate);
+		int key_value = -1;
+		clock_t start = clock();
+		for (int i = 0; i < 10000; i++)
+		{
+			for (int j = 0; j < 10000; j++)
+			{
+				if (distribution(generator))
+					data_controller->put_data(j, i, 205);
+			}
+		}
+		clock_t end_time = clock();
+		cout << "push_back():" << ((double)(end_time - start)) / CLOCKS_PER_SEC << "s\n";
+		
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+
+		// cv::imshow("ROI", roi->show(data_controller->pull_data(true), data_controller->return_level()));
+		// cv::imshow("Map", die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -78,21 +104,103 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 }
 
 System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
+	//// trigger function
+	//// whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
+
+	//// TRANSFER : TODO : amplify function
+	//// only consider drop & moving
+	//if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+	//	int region = (e->Y / 30) * 8 + (e->X / 30);
+	//	cout << "Mouse move over the window - Region (" << region << ")" << endl;
+	//	System::Console::WriteLine("Mouse move over the window - Region (" + region + " )");
+
+	//	// directions : {0: left, 1: right, 2: up, 3: down}
+	//	if (data_controller->change_block(3))
+	//	{
+	//		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
+	//		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level())));
+	//	}
+	//	if (data_controller->return_map_change())
+	//	{
+	//		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y())));
+	//	}
+	//}
+}
+
+System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e) {
 	// trigger function
 	// whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
 
-	// TODO : amplify function
-	if (e->Button == System::Windows::Forms::MouseButtons::Left) {
-		int region = (e->Y / 30) * 8 + (e->X / 30);
-		cout << "Mouse move over the window - Region (" << region << ")" << endl;
-		System::Console::WriteLine("Mouse move over the window - Region (" + region + " )");
+	// TODO : a section to check whether info are loaded.
+	// tp prevent null section
 
-		ROI->clear();
-		for (int i = 0; i < Dies[region].size(); i++) {
-			ROI->paint(Dies[region][i].first, Dies[region][i].second);
+
+	// only consider drop & moving
+
+	// directions : {0: left, 1: right, 2: up, 3: down}
+	bool isDrop = false, isAmplify = false;
+	int dir = -1;			// for Drop
+	bool amplifyFlag = true;	// for Amplify
+
+	// get the direction from keypad input
+	switch (e->KeyCode) {
+	case Keys::W:
+	case Keys::Up:
+		isDrop = true;
+		dir = 2;
+		break;
+	case Keys::S:
+	case Keys::Down:
+		isDrop = true;
+		dir = 3;
+		break;
+	case Keys::A:
+	case Keys::Left:
+		isDrop = true;
+		dir = 0;
+		break;
+	case Keys::D:
+	case Keys::Right:
+		isDrop = true;
+		dir = 1;
+		break;
+
+	case Keys::K:
+		isAmplify = true;
+		amplifyFlag = true;		// amplify
+		break;
+	case Keys::L:
+		isAmplify = true;
+		amplifyFlag = false;	// shrink
+		break;
+
+	default:
+		dir = -1;
+		break;
+	}
+
+	// if nothing is done, just return 
+	if (!(isDrop || isAmplify))	return;
+
+	if (isDrop) {
+		// then move the block by the direction
+		if (data_controller->change_block(dir))
+		{
+			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+			imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
 		}
-
-		imgROI->Image = MatToBitmap(ROI->returnMat());
+		if (data_controller->return_map_change())
+		{
+			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		}
+	}
+	
+	if (isAmplify) {
+		if (data_controller->change_level(amplifyFlag))
+		{
+			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+		}
 	}
 }
 
@@ -154,13 +262,14 @@ System::Void mainForm::connectToDb(System::Void) {
 	{
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
 		UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
-		paint_buffer = data_controller->pulldata(false);
-		uiMapper->Invoke(MatToBitmap(die_map->returnMat(paint_buffer,data_controller->return)));
-		uiPainter->Invoke(MatToBitmap(ROI->returnMat()));
+
+		
+		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y())));
+		uiPainter->Invoke(MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
 	}
 	else {
-		imgROI->Image = MatToBitmap(ROI->returnMat());
-		imgMap->Image = MatToBitmap(Map->returnMat());
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
 	// the consuming time that used to paint die on region 0

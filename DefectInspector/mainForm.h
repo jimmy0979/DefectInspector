@@ -89,11 +89,11 @@ private: System::Windows::Forms::Button^ btnUpdate;
         // imgMap
         // 
         this->imgMap->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right));
-        this->imgMap->Location = System::Drawing::Point(998, 41);
+        this->imgMap->Location = System::Drawing::Point(989, 41);
         this->imgMap->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
         this->imgMap->MinimumSize = System::Drawing::Size(240, 480);
         this->imgMap->Name = L"imgMap";
-        this->imgMap->Size = System::Drawing::Size(240, 607);
+        this->imgMap->Size = System::Drawing::Size(360, 607);
         this->imgMap->TabIndex = 1;
         this->imgMap->TabStop = false;
         this->imgMap->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &mainForm::imgMap_MouseDown);
@@ -128,9 +128,9 @@ private: System::Windows::Forms::Button^ btnUpdate;
         // 
         // mainForm
         // 
-        this->AutoScaleDimensions = System::Drawing::SizeF(9, 19);
+        this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
         this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-        this->ClientSize = System::Drawing::Size(1297, 980);
+        this->ClientSize = System::Drawing::Size(1422, 980);
         this->Controls->Add(this->btnUpdate);
         this->Controls->Add(this->lblInfo);
         this->Controls->Add(this->btnConnectSql);
@@ -138,10 +138,12 @@ private: System::Windows::Forms::Button^ btnUpdate;
         this->Controls->Add(this->imgROI);
         this->Font = (gcnew System::Drawing::Font(L"Consolas", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
             static_cast<System::Byte>(0)));
+        this->KeyPreview = true;
         this->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
         this->Name = L"mainForm";
         this->Text = L"mainForm";
         this->Load += gcnew System::EventHandler(this, &mainForm::mainForm_Load);
+        this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &mainForm::mainForm_KeyDown);
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgROI))->EndInit();
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->EndInit();
         this->ResumeLayout(false);
@@ -153,7 +155,7 @@ private: System::Windows::Forms::Button^ btnUpdate;
     System::Void btnConnectSql_Click(System::Object ^ sender, System::EventArgs ^ e);
     System::Void btnUpdate_Click(System::Object^ sender, System::EventArgs^ e);
     System::Void imgMap_MouseDown(System::Object ^ sender, System::Windows::Forms::MouseEventArgs ^ e);
-
+    System::Void mainForm_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e);
     System::Void connectToDb(System::Void);
 
     // for delegate use

@@ -26,7 +26,7 @@ private:
 		Data_Unit(const int& x,const int& y,const int& defeat) :diex(x), diey(y), defeat_type(defeat){}
 		Data_Unit(const int& x,const int& y,const int& defeat,const string& bin) :diex(x), diey(y),defeat_type(defeat),bin_code(bin){}
 	}data_unit;
-	data_unit** index = nullptr;
+	data_unit*** index;
 	int level = 0;
 	//curr loaction at different level¡Y©Òµ•Ø≈
 	int level_0_x = 0, level_0_y = 0;
@@ -50,5 +50,22 @@ public:
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);
-	DataControlUnit() { index = new data_unit * [100000000]; };
+	void test(void)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			for (int j = 0; j < 10; j++)
+			{
+				cout << count_level_0[i * 10 + j] << '\n';
+			}
+		}
+	}
+	DataControlUnit()
+	{
+		index = new data_unit ** [10000];
+		for (int i = 0; i < 10000; i++)
+		{
+			index[i] = new data_unit * [10000]();
+		}
+	}
 };
