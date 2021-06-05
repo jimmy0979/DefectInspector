@@ -212,6 +212,11 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 		// then move the block by the direction
 		if (data_controller->change_block(dir))
 		{
+			if(dir == 1 || dir == 0)
+				xCurrent = (xCurrent + (dir == 1 ? 1: -1) + 10)%10;
+			if(dir == 2 || dir == 3)
+				yCurrent = (yCurrent + (dir == 3 ? 1: -1) + 10)%10;
+			lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 			imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
 		}
@@ -228,6 +233,8 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	if (isAmplify) {
 		if (data_controller->change_level(amplifyFlag))
 		{
+			xCurrent = 0;
+			yCurrent = 0;
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));		
 		}
