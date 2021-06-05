@@ -21,6 +21,9 @@ vector<paint_unit> paint_buffer;
 // SQL Server Connect
 SqlCommunicator* sql = nullptr;
 
+// Map
+int yCurrent = 0, xCurrent = 0;
+
 //===============================
 
 //---------------------------------------------------------------------
@@ -104,27 +107,50 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 }
 
 System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
-	//// trigger function
-	//// whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
+	// trigger function
+	// whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
 
-	//// TRANSFER : TODO : amplify function
-	//// only consider drop & moving
-	//if (e->Button == System::Windows::Forms::MouseButtons::Left) {
-	//	int region = (e->Y / 30) * 8 + (e->X / 30);
-	//	cout << "Mouse move over the window - Region (" << region << ")" << endl;
-	//	System::Console::WriteLine("Mouse move over the window - Region (" + region + " )");
+	// TRANSFER : TODO : amplify function
+	// only consider drop & moving
+	if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+		int yPosition = (e->Y / 48), xPosition = (e->X / 24);
+		// if (48 * yPosition < e->Y)	yPosition++;
+		// if (24 * xPosition < e->X)	xPosition++;
+		lblInfo->Text = "xPosition=" + xPosition + "\nyPosition=" + yPosition;
+		int yDisplace = yPosition-yCurrent, xDisplace = xPosition-xCurrent;
 
-	//	// directions : {0: left, 1: right, 2: up, 3: down}
-	//	if (data_controller->change_block(3))
-	//	{
-	//		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
-	//		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level())));
-	//	}
-	//	if (data_controller->return_map_change())
-	//	{
-	//		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y())));
-	//	}
-	//}
+		// directions : {0: left, 1: right, 2: up, 3: down}
+		// yDisplace movement
+		for (int i = 0; i<abs(yDisplace); i++) {
+			int dir = (yDisplace > 0) ? 3: 2;
+			if (data_controller->change_block(dir))
+			{
+				imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+				imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
+			}
+			if (data_controller->return_map_change())
+			{
+				imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+			}
+		}
+
+		// xDisplace movement
+		for (int i = 0; i < abs(xDisplace); i++) {
+			int dir = (xDisplace > 0) ? 1 : 0;
+			if (data_controller->change_block(dir))
+			{
+				imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+				imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
+			}
+			if (data_controller->return_map_change())
+			{
+				imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+			}
+		}
+
+		xCurrent = xPosition;
+		yCurrent = yPosition;
+	}
 }
 
 System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e) {
@@ -193,14 +219,22 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 		{
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
 		}
+
+		xCurrent = data_controller->return_locat_x();
+		yCurrent = data_controller->return_locat_y();
+		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 	}
 	
 	if (isAmplify) {
 		if (data_controller->change_level(amplifyFlag))
 		{
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));		
 		}
+
+		xCurrent = data_controller->return_locat_x();
+		yCurrent = data_controller->return_locat_y();
+		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 	}
 }
 

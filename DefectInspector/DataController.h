@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+#include <utility>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ private:
 	}data_unit;
 	data_unit*** index;
 	int level = 0;
-	//curr loaction at different level¡Y©Òµ•Ø≈
+	//curr loaction at different level
 	int level_0_x = 0, level_0_y = 0;
 	int level_1_x = 0, level_1_y = 0;
 	int level_2_x = 0, level_2_y = 0;
