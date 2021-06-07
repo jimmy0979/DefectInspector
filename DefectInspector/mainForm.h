@@ -162,5 +162,9 @@ private: System::Windows::Forms::Button^ btnUpdate;
     System::Void UpdateMapperBitmap(Bitmap^ uImage);
     System::Void UpdatePainterBitmap(Bitmap^ uImage);
     System::Void UpdateInfoText(String^ uText, int mode);
+
+    // for drop & amplify
+    System::Void Drop(int dir);
+    System::Void Amplify(bool amplifyFlag);
 };
 }   // namespace DefectInspector

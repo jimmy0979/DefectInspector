@@ -1,10 +1,11 @@
 #include "mainForm.h"
 
 #include <time.h>
-#include <string>
-#include <sstream>
-#include <vector>
+
 #include <random>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -43,36 +44,12 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 	// mainForm_load
 	try {
 		// connect to database with its ConnectString
-		// sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// initial Painter, Mapper
 		roi = new ROI(900, 900);
 		die_map = new Map();
 		data_controller = new DataControlUnit;
-
-		// TEMP TEST
-		double defeat_rate = 0.1;
-
-		default_random_engine generator;
-		bernoulli_distribution distribution(defeat_rate);
-		int key_value = -1;
-		clock_t start = clock();
-		for (int i = 0; i < 10000; i++)
-		{
-			for (int j = 0; j < 10000; j++)
-			{
-				if (distribution(generator))
-					data_controller->put_data(j, i, 205);
-			}
-		}
-		clock_t end_time = clock();
-		cout << "push_back():" << ((double)(end_time - start)) / CLOCKS_PER_SEC << "s\n";
-		
-		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-
-		// cv::imshow("ROI", roi->show(data_controller->pull_data(true), data_controller->return_level()));
-		// cv::imshow("Map", die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
 
 	}
 	catch (System::Exception^ e) {
@@ -117,35 +94,19 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		// if (48 * yPosition < e->Y)	yPosition++;
 		// if (24 * xPosition < e->X)	xPosition++;
 		lblInfo->Text = "xPosition=" + xPosition + "\nyPosition=" + yPosition;
-		int yDisplace = yPosition-yCurrent, xDisplace = xPosition-xCurrent;
+		int yDisplace = yPosition - yCurrent, xDisplace = xPosition - xCurrent;
 
 		// directions : {0: left, 1: right, 2: up, 3: down}
 		// yDisplace movement
-		for (int i = 0; i<abs(yDisplace); i++) {
-			int dir = (yDisplace > 0) ? 3: 2;
-			if (data_controller->change_block(dir))
-			{
-				imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
-				imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
-			}
-			if (data_controller->return_map_change())
-			{
-				imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-			}
+		for (int i = 0; i < abs(yDisplace); i++) {
+			int dir = (yDisplace > 0) ? 3 : 2;
+			Drop(dir);
 		}
 
 		// xDisplace movement
 		for (int i = 0; i < abs(xDisplace); i++) {
 			int dir = (xDisplace > 0) ? 1 : 0;
-			if (data_controller->change_block(dir))
-			{
-				imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
-				imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
-			}
-			if (data_controller->return_map_change())
-			{
-				imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-			}
+			Drop(dir);
 		}
 
 		xCurrent = xPosition;
@@ -160,13 +121,12 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	// TODO : a section to check whether info are loaded.
 	// tp prevent null section
 
-
 	// only consider drop & moving
 
 	// directions : {0: left, 1: right, 2: up, 3: down}
 	bool isDrop = false, isAmplify = false;
-	int dir = -1;			// for Drop
-	bool amplifyFlag = true;	// for Amplify
+	int dir = -1;              // for Drop
+	bool amplifyFlag = true;   // for Amplify
 
 	// get the direction from keypad input
 	switch (e->KeyCode) {
@@ -193,11 +153,11 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 
 	case Keys::K:
 		isAmplify = true;
-		amplifyFlag = true;		// amplify
+		amplifyFlag = true;   // amplify
 		break;
 	case Keys::L:
 		isAmplify = true;
-		amplifyFlag = false;	// shrink
+		amplifyFlag = false;   // shrink
 		break;
 
 	default:
@@ -205,37 +165,15 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 		break;
 	}
 
-	// if nothing is done, just return 
-	if (!(isDrop || isAmplify))	return;
+	// if nothing is done, just return
+	if (!(isDrop || isAmplify)) return;
 
 	if (isDrop) {
-		// then move the block by the direction
-		if (data_controller->change_block(dir))
-		{
-			lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
-			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
-			imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
-		}
-		if (data_controller->return_map_change())
-		{
-			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-		}
-
-		xCurrent = data_controller->return_locat_x();
-		yCurrent = data_controller->return_locat_y();
-		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+		Drop(dir);
 	}
-	
-	if (isAmplify) {
-		if (data_controller->change_level(amplifyFlag))
-		{
-			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
-			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));		
-		}
 
-		xCurrent = data_controller->return_locat_x();
-		yCurrent = data_controller->return_locat_y();
-		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+	if (isAmplify) {
+		Amplify(amplifyFlag);
 	}
 }
 
@@ -250,7 +188,8 @@ System::Void mainForm::connectToDb(System::Void) {
 	String^ resInfo;
 
 	// make a query and get the statmentHandle
-	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL]");
+	// WARNING : can only divide infos into 10*10 regions
+	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] <= 100");
 
 	// SQL ODBC Connect
 	SQLBIGINT region, diex, diey;
@@ -268,12 +207,12 @@ System::Void mainForm::connectToDb(System::Void) {
 		// the return state of each ODBC command
 		SQLRETURN retCode = SQLFetch(hstmt);
 
-		if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO) 
-		{
-			data_controller->put_data(diex, diey, 255);
+		if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO) {
+			int abs_diex = 1000 * ((region -1)% 10) + diex;
+			int abs_diey = 1000 * ((region -1)/ 10) + diey;
+			data_controller->put_data(abs_diex, abs_diey, 255);
 		}
-		else 
-		{
+		else {
 			break;
 		}
 	}
@@ -293,12 +232,10 @@ System::Void mainForm::connectToDb(System::Void) {
 	}
 	*/
 
-	if (this->InvokeRequired) 
-	{
+	if (this->InvokeRequired) {
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
 		UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
 
-		
 		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y())));
 		uiPainter->Invoke(MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
 	}
@@ -349,6 +286,35 @@ System::Void mainForm::UpdateInfoText(String^ uText, int mode) {
 		lblInfo->Text = uText;
 		break;
 	}
+}
+
+//---------------------------------------------------------------------
+
+System::Void mainForm::Drop(int dir) {
+	// then move the block by the direction
+	if (data_controller->change_block(dir)) {
+		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
+	}
+	if (data_controller->return_map_change()) {
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+	}
+
+	xCurrent = data_controller->return_locat_x();
+	yCurrent = data_controller->return_locat_y();
+	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+}
+
+System::Void mainForm::Amplify(bool amplifyFlag) {
+	if (data_controller->change_level(amplifyFlag)) {
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
+	}
+
+	xCurrent = data_controller->return_locat_x();
+	yCurrent = data_controller->return_locat_y();
+	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 }
 
 //---------------------------------------------------------------------
