@@ -189,7 +189,7 @@ System::Void mainForm::connectToDb(System::Void) {
 
 	// make a query and get the statmentHandle
 	// WARNING : can only divide infos into 10*10 regions
-	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] <= 100");
+	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] = 1");
 
 	// SQL ODBC Connect
 	SQLBIGINT region, diex, diey;
@@ -244,6 +244,10 @@ System::Void mainForm::connectToDb(System::Void) {
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
+	// TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
+	Drop(1);
+	Drop(0);
+
 	// the consuming time that used to paint die on region 0
 	cost = (float)(clock() - start) / CLOCKS_PER_SEC;
 	resInfo += cost.ToString() + "\n";
@@ -291,9 +295,9 @@ System::Void mainForm::UpdateInfoText(String^ uText, int mode) {
 //---------------------------------------------------------------------
 
 System::Void mainForm::Drop(int dir) {
+	// directions : {0: left, 1: right, 2: up, 3: down}
 	// then move the block by the direction
 	if (data_controller->change_block(dir)) {
-		lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
 	}
@@ -314,6 +318,10 @@ System::Void mainForm::Amplify(bool amplifyFlag) {
 
 	xCurrent = data_controller->return_locat_x();
 	yCurrent = data_controller->return_locat_y();
+
+	// TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
+	Drop(0);
+	Drop(1);
 	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 }
 
