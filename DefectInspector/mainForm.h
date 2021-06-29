@@ -54,6 +54,7 @@ protected:
     private:
     System::Windows::Forms::Label ^ lblInfo;
 private: System::Windows::Forms::Button^ btnUpdate;
+private: System::Windows::Forms::DataVisualization::Charting::Chart^ chart1;
 
     private:
     /// <summary>
@@ -67,29 +68,34 @@ private: System::Windows::Forms::Button^ btnUpdate;
     /// 這個方法的內容。
     /// </summary>
     void InitializeComponent(void) {
+        System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+        System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+        System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
         this->imgROI = (gcnew System::Windows::Forms::PictureBox());
         this->imgMap = (gcnew System::Windows::Forms::PictureBox());
         this->btnConnectSql = (gcnew System::Windows::Forms::Button());
         this->lblInfo = (gcnew System::Windows::Forms::Label());
         this->btnUpdate = (gcnew System::Windows::Forms::Button());
+        this->chart1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgROI))->BeginInit();
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->BeginInit();
+        (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
         this->SuspendLayout();
         // 
         // imgROI
         // 
-        this->imgROI->Location = System::Drawing::Point(34, 41);
+        this->imgROI->Location = System::Drawing::Point(13, 14);
         this->imgROI->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
-        this->imgROI->MinimumSize = System::Drawing::Size(900, 900);
+        this->imgROI->MinimumSize = System::Drawing::Size(1000, 1000);
         this->imgROI->Name = L"imgROI";
-        this->imgROI->Size = System::Drawing::Size(900, 900);
+        this->imgROI->Size = System::Drawing::Size(1000, 1000);
         this->imgROI->TabIndex = 0;
         this->imgROI->TabStop = false;
         // 
         // imgMap
         // 
-        this->imgMap->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right));
-        this->imgMap->Location = System::Drawing::Point(989, 41);
+        this->imgMap->Anchor = System::Windows::Forms::AnchorStyles::None;
+        this->imgMap->Location = System::Drawing::Point(1037, 14);
         this->imgMap->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
         this->imgMap->MinimumSize = System::Drawing::Size(240, 480);
         this->imgMap->Name = L"imgMap";
@@ -100,7 +106,7 @@ private: System::Windows::Forms::Button^ btnUpdate;
         // 
         // btnConnectSql
         // 
-        this->btnConnectSql->Location = System::Drawing::Point(998, 885);
+        this->btnConnectSql->Location = System::Drawing::Point(1437, 553);
         this->btnConnectSql->Name = L"btnConnectSql";
         this->btnConnectSql->Size = System::Drawing::Size(187, 56);
         this->btnConnectSql->TabIndex = 2;
@@ -110,15 +116,15 @@ private: System::Windows::Forms::Button^ btnUpdate;
         // 
         // lblInfo
         // 
-        this->lblInfo->Location = System::Drawing::Point(998, 685);
+        this->lblInfo->Location = System::Drawing::Point(1439, 14);
         this->lblInfo->Name = L"lblInfo";
-        this->lblInfo->Size = System::Drawing::Size(240, 84);
+        this->lblInfo->Size = System::Drawing::Size(192, 442);
         this->lblInfo->TabIndex = 3;
         this->lblInfo->Text = L"NONE";
         // 
         // btnUpdate
         // 
-        this->btnUpdate->Location = System::Drawing::Point(998, 812);
+        this->btnUpdate->Location = System::Drawing::Point(1437, 480);
         this->btnUpdate->Name = L"btnUpdate";
         this->btnUpdate->Size = System::Drawing::Size(187, 57);
         this->btnUpdate->TabIndex = 4;
@@ -126,11 +132,29 @@ private: System::Windows::Forms::Button^ btnUpdate;
         this->btnUpdate->UseVisualStyleBackColor = true;
         this->btnUpdate->Click += gcnew System::EventHandler(this, &mainForm::btnUpdate_Click);
         // 
+        // chart1
+        // 
+        chartArea1->Name = L"ChartArea1";
+        this->chart1->ChartAreas->Add(chartArea1);
+        legend1->Name = L"Legend1";
+        this->chart1->Legends->Add(legend1);
+        this->chart1->Location = System::Drawing::Point(1037, 629);
+        this->chart1->Name = L"chart1";
+        series1->ChartArea = L"ChartArea1";
+        series1->Legend = L"Legend1";
+        series1->Name = L"Series1";
+        this->chart1->Series->Add(series1);
+        this->chart1->Size = System::Drawing::Size(587, 372);
+        this->chart1->TabIndex = 5;
+        this->chart1->Text = L"chart1";
+        // 
         // mainForm
         // 
         this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
         this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-        this->ClientSize = System::Drawing::Size(1422, 980);
+        this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
+        this->ClientSize = System::Drawing::Size(1643, 1036);
+        this->Controls->Add(this->chart1);
         this->Controls->Add(this->btnUpdate);
         this->Controls->Add(this->lblInfo);
         this->Controls->Add(this->btnConnectSql);
@@ -146,6 +170,7 @@ private: System::Windows::Forms::Button^ btnUpdate;
         this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &mainForm::mainForm_KeyDown);
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgROI))->EndInit();
         (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->EndInit();
+        (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->EndInit();
         this->ResumeLayout(false);
 
     }
@@ -166,5 +191,8 @@ private: System::Windows::Forms::Button^ btnUpdate;
     // for drop & amplify
     System::Void Drop(int dir);
     System::Void Amplify(bool amplifyFlag);
+
+    // Plots
+    System::Void updatePlot();
 };
 }   // namespace DefectInspector

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+using namespace System::Windows::Forms::DataVisualization::Charting;
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -47,10 +48,13 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// initial Painter, Mapper
-		roi = new ROI(900, 900);
+		roi = new ROI(1000, 1000);
 		die_map = new Map();
 		data_controller = new DataControlUnit;
 
+		// updatePlot();
+		this->chart1->Series->Clear();
+		this->chart1->Series->Add("DefectType");
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -93,7 +97,8 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		int yPosition = (e->Y / 48), xPosition = (e->X / 24);
 		// if (48 * yPosition < e->Y)	yPosition++;
 		// if (24 * xPosition < e->X)	xPosition++;
-		lblInfo->Text = "xPosition=" + xPosition + "\nyPosition=" + yPosition;
+		this->lblInfo->Text = "";
+		lblInfo->Text = "xPosition=" + xPosition + "\nyPosition=" + yPosition + "\n";
 		int yDisplace = yPosition - yCurrent, xDisplace = xPosition - xCurrent;
 
 		// directions : {0: left, 1: right, 2: up, 3: down}
@@ -108,6 +113,9 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 			int dir = (xDisplace > 0) ? 1 : 0;
 			Drop(dir);
 		}
+
+		//
+		updatePlot();
 
 		xCurrent = xPosition;
 		yCurrent = yPosition;
@@ -175,6 +183,9 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	if (isAmplify) {
 		Amplify(amplifyFlag);
 	}
+
+	//
+	updatePlot();
 }
 
 //---------------------------------------------------------------------
@@ -247,6 +258,9 @@ System::Void mainForm::connectToDb(System::Void) {
 	// TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
 	Drop(1);
 	Drop(0);
+
+	// TODO : wait for delegate
+	// updatePlot();
 
 	// the consuming time that used to paint die on region 0
 	cost = (float)(clock() - start) / CLOCKS_PER_SEC;
@@ -323,6 +337,21 @@ System::Void mainForm::Amplify(bool amplifyFlag) {
 	Drop(0);
 	Drop(1);
 	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+}
+
+//---------------------------------------------------------------------
+
+System::Void mainForm::updatePlot() {
+	this->chart1->Series["DefectType"]->Points->Clear();
+	this->lblInfo->Text = "";
+
+	map<int, int> res = data_controller->return_defect_count();
+	for (pair<int, int> i : res) {
+		this->lblInfo->Text += i.first + " -> " + i.second + "\n";
+		//this->chart1->Series["DefectType"]->XValueType = ChartValueType::String;
+		//this->chart1->Series["DefectType"]->YValueType = ChartValueType::Int64;
+		this->chart1->Series["DefectType"]->Points->AddXY(i.first, i.second);
+	}
 }
 
 //---------------------------------------------------------------------

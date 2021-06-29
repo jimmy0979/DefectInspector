@@ -481,3 +481,31 @@ const int DataControlUnit::return_locat_y(void)
 		return level_2_y;
 	}
 }
+
+map<int, int> DataControlUnit::return_defect_count() {
+	int defectCnt = 0, tot = 0;
+	switch (level) {
+	case 0:
+		tot = 1000000;
+		defectCnt = count_level_0[level_0_y * 10 + level_0_x];
+		break;
+	case 1:
+		tot = 10000;
+		// defectCnt = count_level_1[(level_0_y / 100) * 100 + (level_0_x / 100)];
+		defectCnt = count_level_1[level_0_y * 1000 + level_0_x * 10 + level_1_y * 100 + level_1_x];
+		break;
+	case 2:
+		tot = 100;
+		// defectCnt = count_level_2[(level_0_y / 10) * 1000 + (level_0_x / 10)];
+		defectCnt = count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + level_2_y * 1000 + level_2_x];
+		break;
+	default:
+		defectCnt = 0;
+	}
+
+	map<int, int> res;
+	res[0] = tot - defectCnt;
+	res[1] = defectCnt;
+
+	return res;
+}

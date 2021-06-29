@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+#include <map>
 #include <utility>
 
 using namespace std;
@@ -51,6 +52,7 @@ public:
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);
+	map<int, int> return_defect_count(void);
 	void test(void)
 	{
 		for (int i = 0; i < 10; i++)
