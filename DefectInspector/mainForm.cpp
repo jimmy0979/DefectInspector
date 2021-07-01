@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 using namespace DefectInspector;
 using namespace System::Threading;
@@ -37,7 +38,7 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 	// mainForm_load
 	try {
 		// connect to database with its ConnectString
-		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+		sql = new SqlCommunicator(L"DRIVER = { SQL Server }; SERVER = localhost, 1433; DATABASE = test_5; UID = myID; PWD = myPW;");
 
 		// initial Painter, Mapper
 		ROI = new DiePainter(900, 900);
@@ -45,6 +46,7 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
+		//std::cout << e->Message->ToString() << endl;
 	}
 }
 
@@ -67,7 +69,7 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 	try {
 		// make a query and get the statmentHandle
 		// TODO : assoicate the update with amplify function
-		SQLHSTMT hstmt = sql->sqlCommand(L"UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL] SET[LOT_ID] = 131 WHERE[DieX] = 131 AND[DieY] = 31; ");
+		SQLHSTMT hstmt = sql->sqlCommand(L"UPDATE [test_5].[dbo].[2274_DefectData_TEST_PartHalf] SET[LOT_ID] = 131 WHERE[DieX] = 131 AND[DieY] = 31; ");
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -85,7 +87,7 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		System::Console::WriteLine("Mouse move over the window - Region (" + region + " )");
 
 		ROI->clear();
-		for (int i = 0; i < Dies[region].size(); i++) {
+		for (int i = 0; Dies.size() > region && i < Dies[region].size(); i++) {
 			ROI->paint(Dies[region][i].first, Dies[region][i].second);
 		}
 
@@ -104,7 +106,7 @@ System::Void mainForm::connectToDb(System::Void) {
 	String^ resInfo;
 
 	// make a query and get the statmentHandle
-	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL]");
+	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test_5].[dbo].[2274_DefectData_TEST_PartHalf]");
 
 	// SQL ODBC Connect
 	SQLBIGINT region, diex, diey;
@@ -151,7 +153,7 @@ System::Void mainForm::connectToDb(System::Void) {
 	// default area = 0 in Painter
 	start = clock();
 	int area = 0;
-	for (int i = 0; i < Dies[area].size(); i++) {
+	for (int i = 0; Dies.size() > region && i < Dies[area].size(); i++) {
 		ROI->paint(Dies[area][i].first, Dies[area][i].second);
 	}
 
@@ -173,15 +175,15 @@ System::Void mainForm::connectToDb(System::Void) {
 
 	//// TODO : make String^ in other thread can be used in main thread's ui lblInfo
 	//// BUG  : System.InvalidOperationException: '跨執行緒作業無效: 存取控制項 'lblInfo' 時所使用的執行緒與建立控制項的執行緒不同。'
-	//if (this->InvokeRequired) {
-	//    UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
-	//    uiInfo->Invoke(resInfo, 0);
-	//}
-	//else {
-	//    // convert string to String^ in CLR
-	//    // lblInfo->Text = gcnew String(text.c_str());
-	//    lblInfo->Text = resInfo;
-	//}
+	if (lblInfo->InvokeRequired) {
+	    UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
+		Invoke(uiInfo, resInfo, 0);
+	}
+	else {
+	    // convert string to String^ in CLR
+	    // lblInfo->Text = gcnew String(text.c_str());
+	    lblInfo->Text = resInfo;
+	}
 }
 
 //---------------------------------------------------------------------
