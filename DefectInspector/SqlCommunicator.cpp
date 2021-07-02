@@ -44,14 +44,14 @@ SqlCommunicator::SqlCommunicator(const wchar_t* sqlConnectStr) {
 		// You have the option to use a username/password instead of a trusted connection
 		// but is more secure to use a trusted connection
 		retCode = SQLDriverConnect(sqlConnHandle,
-			NULL,
+			GetDesktopWindow(),
 			//(SQLWCHAR*)L"DRIVER={SQL Server};SERVER=localhost, 1433;DATABASE=master;UID=username;PWD=password;",
 			(SQLWCHAR*)sqlConnectStr,
-			SQL_NTS,
+			strlen((char*)sqlConnectStr),
 			retconstring,
-			1024,
+			SQL_RETURN_CODE_LEN,
 			NULL,
-			SQL_DRIVER_NOPROMPT);
+			SQL_DRIVER_COMPLETE);
 		if (retCode != SQL_SUCCESS && retCode != SQL_SUCCESS_WITH_INFO) {
 			close();
 			throw gcnew System::Exception(gcnew System::String(status(retCode).c_str()));
