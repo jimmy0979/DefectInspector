@@ -192,7 +192,9 @@ private: System::Windows::Forms::DataVisualization::Charting::Chart^ chart1;
     System::Void Drop(int dir);
     System::Void Amplify(bool amplifyFlag);
 
-    // Plots
+    // Plots & Info lists
+    System::Void updateRealTimeInfo();
+    System::Void updateInfoList();
     System::Void updatePlot();
 };
 }   // namespace DefectInspector

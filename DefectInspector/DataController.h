@@ -41,6 +41,9 @@ private:
 	//ignore
 	void create_floder();
 	bool map_change = false;
+	// realTime infoList
+	string infoList = "";
+
 public:
 	const int return_level(void) { return level;}
 	//System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
@@ -52,6 +55,8 @@ public:
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);
+
+	string currentInfoList(void);
 	map<int, int> return_defect_count(void);
 	void test(void)
 	{

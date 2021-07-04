@@ -115,7 +115,7 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		}
 
 		//
-		updatePlot();
+		updateRealTimeInfo();
 
 		xCurrent = xPosition;
 		yCurrent = yPosition;
@@ -185,7 +185,7 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	}
 
 	//
-	updatePlot();
+	updateRealTimeInfo();
 }
 
 //---------------------------------------------------------------------
@@ -236,12 +236,6 @@ System::Void mainForm::connectToDb(System::Void) {
 
 	// default area = 0 in Painter
 	start = clock();
-	/*
-	int area = 0;
-	for (int i = 0; i < Dies[area].size(); i++) {
-		ROI->paint(Dies[area][i].first, Dies[area][i].second);
-	}
-	*/
 
 	if (this->InvokeRequired) {
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
@@ -266,17 +260,16 @@ System::Void mainForm::connectToDb(System::Void) {
 	cost = (float)(clock() - start) / CLOCKS_PER_SEC;
 	resInfo += cost.ToString() + "\n";
 
-	//// TODO : make String^ in other thread can be used in main thread's ui lblInfo
-	//// BUG  : System.InvalidOperationException: '跨執行緒作業無效: 存取控制項 'lblInfo' 時所使用的執行緒與建立控制項的執行緒不同。'
-	//if (this->InvokeRequired) {
-	//    UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
-	//    uiInfo->Invoke(resInfo, 0);
-	//}
-	//else {
-	//    // convert string to String^ in CLR
-	//    // lblInfo->Text = gcnew String(text.c_str());
-	//    lblInfo->Text = resInfo;
-	//}
+	// make String^ in other thread can be used in main thread's ui lblInfo
+	if (this->InvokeRequired) {
+	    UpdateText^ uiInfo = gcnew UpdateText(this, &mainForm::UpdateInfoText);
+	    Invoke(uiInfo, resInfo, 0);
+	}
+	else {
+	    // convert string to String^ in CLR
+	    // lblInfo->Text = gcnew String(text.c_str());
+	    lblInfo->Text = resInfo;
+	}
 }
 
 //---------------------------------------------------------------------
@@ -341,13 +334,24 @@ System::Void mainForm::Amplify(bool amplifyFlag) {
 
 //---------------------------------------------------------------------
 
+System::Void mainForm::updateRealTimeInfo() {
+	this->updatePlot();
+	this->updateInfoList();
+}
+
+stringstream updateInfoText;
+
+System::Void mainForm::updateInfoList() {
+	// call data_controller for real-time info
+	this->lblInfo->Text = gcnew String(data_controller->currentInfoList().c_str());;
+}
+
 System::Void mainForm::updatePlot() {
 	this->chart1->Series["DefectType"]->Points->Clear();
-	this->lblInfo->Text = "";
+	updateInfoText.clear();
 
 	map<int, int> res = data_controller->return_defect_count();
 	for (pair<int, int> i : res) {
-		this->lblInfo->Text += i.first + " -> " + i.second + "\n";
 		//this->chart1->Series["DefectType"]->XValueType = ChartValueType::String;
 		//this->chart1->Series["DefectType"]->YValueType = ChartValueType::Int64;
 		this->chart1->Series["DefectType"]->Points->AddXY(i.first, i.second);

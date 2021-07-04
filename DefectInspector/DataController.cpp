@@ -482,6 +482,11 @@ const int DataControlUnit::return_locat_y(void)
 	}
 }
 
+
+string DataControlUnit::currentInfoList() {
+	return this->infoList;
+}
+
 map<int, int> DataControlUnit::return_defect_count() {
 	int defectCnt = 0, tot = 0;
 	switch (level) {
@@ -506,6 +511,11 @@ map<int, int> DataControlUnit::return_defect_count() {
 	map<int, int> res;
 	res[0] = tot - defectCnt;
 	res[1] = defectCnt;
+
+	stringstream ss;
+	for(pair<int, int> i: res)
+		ss << i.first << " -> " << i.second << "\n";
+	infoList = ss.str();
 
 	return res;
 }
