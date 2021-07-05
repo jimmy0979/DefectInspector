@@ -73,7 +73,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				{
 					if (index[start_y+i][start_x+j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
+						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
 					}
 				}
 			}
@@ -88,7 +88,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				{
 					if (index[start_y + i][start_x + j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
+						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
 					}
 				}
 			}
@@ -103,7 +103,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				{
 					if (index[start_y + i][start_x + j] != nullptr)
 					{
-						output.push_back(paint_unit(j, i, cv::Scalar(0, 0, 255)));
+						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
 					}
 				}
 			}
@@ -118,31 +118,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				for (int j = 0;  j <  10; j++)
 				{
 					percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
-					if (percent > 0.49)
-					{
-						c = cv::Scalar(0, 0, 255);
-					}
-					else if (percent > 0.25)
-					{
-						c = cv::Scalar(80, 80, 255);
-					}
-					else if (percent > 0.125)
-					{
-						c = cv::Scalar(102, 102, 255);
-					}
-					else if (percent > 0.0625)
-					{
-						c = cv::Scalar(204, 204, 255);
-					}
-					else if (percent > 0.03125)
-					{
-						c = cv::Scalar(204, 255, 255);
-					}
-					else
-					{
-						c = cv::Scalar(0, 255, 0);
-					}
-					output.push_back(paint_unit(j, i, c));
+					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
 		}
@@ -153,31 +129,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				for (int j = 0;  j <  10; j++)
 				{
 					percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
-					if (percent > 0.49)
-					{
-						c = cv::Scalar(0, 0, 255);
-					}
-					else if (percent > 0.25)
-					{
-						c = cv::Scalar(80, 80, 255);
-					}
-					else if (percent > 0.125)
-					{
-						c = cv::Scalar(102, 102, 255);
-					}
-					else if (percent > 0.0625)
-					{
-						c = cv::Scalar(204, 204, 255);
-					}
-					else if (percent > 0.03125)
-					{
-						c = cv::Scalar(204, 255, 255);
-					}
-					else
-					{
-						c = cv::Scalar(0, 255, 0);
-					}
-					output.push_back(paint_unit(j, i, c));
+					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
 		}
@@ -188,31 +140,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 				for (int j = 0; j < 10; j++)
 				{
 					percent = (double)(count_level_0[i * 10 + j]) / 1000000;
-					if (percent > 0.49)
-					{
-						c = cv::Scalar(0, 0, 255);
-					}
-					else if (percent > 0.25)
-					{
-						c = cv::Scalar(80, 80, 255);
-					}
-					else if (percent > 0.125)
-					{
-						c = cv::Scalar(102,102 , 255);
-					}
-					else if (percent > 0.0625)
-					{
-						c = cv::Scalar(204, 204, 255);
-					}
-					else if (percent > 0.03125)
-					{
-						c = cv::Scalar(204, 255, 255);
-					}
-					else
-					{
-						c = cv::Scalar(0, 255, 0);
-					}
-					output.push_back(paint_unit(j, i, c));
+					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
 		}
@@ -479,5 +407,46 @@ const int DataControlUnit::return_locat_y(void)
 	else
 	{
 		return level_2_y;
+	}
+}
+//color function
+cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
+{
+	switch (DataControlUnit::filter_variable)//篩選條件，一次只會顯示一種
+	{
+	case 0://defeat
+		return cv::Scalar(0, 0, 255);
+
+	}
+}
+cv::Scalar DataControlUnit::decide_color_map(const double& percent)
+{
+	switch (DataControlUnit::filter_variable)//篩選條件，一次只會顯示一種
+	{
+	case 0://defeat
+		if (percent > 0.49)//level 6 level越大，表示佔的比例越多
+		{
+			return cv::Scalar(0, 0, 255);
+		}
+		else if (percent > 0.25)//level 5
+		{
+			return cv::Scalar(80, 80, 255);
+		}
+		else if (percent > 0.125)//level 4
+		{
+			return cv::Scalar(102, 102, 255);
+		}
+		else if (percent > 0.0625)//level 3
+		{
+			return cv::Scalar(204, 204, 255);
+		}
+		else if (percent > 0.03125)//level 2
+		{
+			return cv::Scalar(204, 255, 255);
+		}
+		else//level 1
+		{
+			return cv::Scalar(0, 255, 0);
+		}
 	}
 }

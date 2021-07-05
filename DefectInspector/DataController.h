@@ -40,6 +40,10 @@ private:
 	//ignore
 	void create_floder();
 	bool map_change = false;
+	int filter_variable = 0;//決定篩選條件的變數，暫時先這樣
+	//color function
+	cv::Scalar decide_color_roi(const data_unit*);//decide the color of piex at  ROI
+	cv::Scalar decide_color_map(const double&);//decide the color of piex at map
 public:
 	const int return_level(void) { return level;}
 	//System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
