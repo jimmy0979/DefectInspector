@@ -55,16 +55,6 @@ public:
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);
-	void test(void)
-	{
-		for (int i = 0; i < 10; i++)
-		{
-			for (int j = 0; j < 10; j++)
-			{
-				cout << count_level_0[i * 10 + j] << '\n';
-			}
-		}
-	}
 	DataControlUnit()
 	{
 		index = new data_unit ** [10000];
