@@ -38,12 +38,10 @@ void DataControlUnit::put_data(const int& x, const int& y,const int &defeat, con
 		index[y][x]->bin_code = bincode;
 		index[y][x]->defeat_type = defeat;
 	}
+	insert_statistics(x, y, index[y][x]);
 }
 void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
 {
-	count_level_0[(y / 1000) * 10 + (x / 1000)]++;
-	count_level_1[(y / 100) * 100 + (x / 100)]++;
-	count_level_2[(y / 10) * 1000 + (x / 10)]++;
 	if (index[y][x] == nullptr)
 	{
 		index[y][x] = new data_unit(x, y, defeat);
@@ -52,6 +50,7 @@ void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
 	{
 		index[y][x]->defeat_type = defeat;
 	}
+	insert_statistics(x, y, index[y][x]);
 }
 
 vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
@@ -117,7 +116,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
+					percent = (double)(get_statistics_data(level_0_x, level_0_y, level_1_x, level_1_y, j, i, "256")) / 100;//這裡為假定defeat type為256
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
@@ -128,7 +127,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
+					percent = (double)(get_statistics_data(level_0_x, level_0_y, j, i, "256")) / 10000;
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
@@ -139,7 +138,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0; j < 10; j++)
 				{
-					percent = (double)(count_level_0[i * 10 + j]) / 1000000;
+					percent = (double)(get_statistics_data(j, i, "256")) / 1000000;
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
@@ -449,4 +448,91 @@ cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 			return cv::Scalar(0, 255, 0);
 		}
 	}
+}
+
+//about filter  新的
+void DataControlUnit::insert_statistics(const int& x, const int& y, const data_unit* input_data)
+{
+	if (input_data->defeat_type != 0)//檢查是否有defeat
+	{
+		map<string, statistics_node>::iterator itr = statistics_map.find(to_string(input_data->defeat_type));
+		if (itr == statistics_map.end())//檢查是否已存在此分類
+		{
+			statistics_map[to_string(input_data->defeat_type)] = statistics_node(x, y);//不存在，新增node
+		}
+		else
+		{
+			itr->second.insert(x, y);//已存在
+		}
+	}
+	if (!input_data->bin_code.empty())//檢查是否有bin code
+	{
+		map<string, statistics_node>::iterator itr = statistics_map.find(input_data->bin_code);
+		if (itr == statistics_map.end())
+		{
+			statistics_map[to_string(input_data->defeat_type)] = statistics_node(x, y);
+		}
+		else
+		{
+			itr->second.insert(x, y);
+		}
+	}
+}
+
+int DataControlUnit::get_statistics_data(const int& x, const int& y, const string& target)
+{
+	map<string, statistics_node>::iterator itr = statistics_map.find(target);
+	int result;
+	if (itr != statistics_map.end())//檢查是否已存在此分類
+	{
+		result = itr->second.search_statistics(x, y);
+		return result;
+	}
+	return 0;
+	return result;
+}
+
+int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const string& target)
+{
+	map<string, statistics_node>::iterator itr = statistics_map.find(target);
+	int result;
+	if (itr != statistics_map.end())//檢查是否已存在此分類
+	{
+		result = itr->second.search_statistics(x0, y0, x1, y1);
+		return result;
+	}
+	return 0;
+}
+
+int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& x2, const int& y2, const string& target)
+{
+	int result = 0;
+	int start_x = x0 * 1000 + x1 * 100 + x2 * 10;
+	int start_y = y0 * 1000 + y1 * 100 + y2 * 10;
+	for (int i = 0; i < 10; i++)//直接用循序搜尋法(Sequential Search)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (index[start_y + i][start_x + j] == nullptr)
+				continue;
+			if (index[start_y + i][start_x + j]->bin_code == target || to_string(index[start_y + i][start_x + j]->defeat_type) == target)
+				result++;
+		}
+	}
+	return result;
+}
+void DataControlUnit::Statistics_node::insert(const int& x, const int& y)
+{
+	node_count_level_0[(y / 1000) * 10 + (x / 1000)]++;
+	node_count_level_1[(y / 100) * 100 + (x / 100)]++;
+}
+
+int DataControlUnit::Statistics_node::search_statistics(const int& x, const int& y)
+{
+	return node_count_level_0[y * 10 + x];
+}
+
+int DataControlUnit::Statistics_node::search_statistics(const int& x0, const int& y0, const int& x1, const int& y1)
+{
+	return node_count_level_1[y0 * 1000 + x0 * 10 + y1 * 100 + x1];
 }
