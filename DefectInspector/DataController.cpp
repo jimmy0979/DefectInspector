@@ -41,11 +41,12 @@ void DataControlUnit::put_data(const int& x, const int& y,const int &defeat, con
 }
 void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
 {
-	count_level_0[(y / 1000) * 10 + (x / 1000)]++;
-	count_level_1[(y / 100) * 100 + (x / 100)]++;
-	count_level_2[(y / 10) * 1000 + (x / 10)]++;
 	if (index[y][x] == nullptr)
 	{
+		count_level_0[(y / 1000) * 10 + (x / 1000)]++;
+		count_level_1[(y / 100) * 100 + (x / 100)]++;
+		count_level_2[(y / 10) * 1000 + (x / 10)]++;
+
 		index[y][x] = new data_unit(x, y, defeat);
 	}
 	else
@@ -482,6 +483,18 @@ const int DataControlUnit::return_locat_y(void)
 	}
 }
 
+int DataControlUnit::return_lotId(void) {
+	// return LOT_ID of current die
+	// plus 1 since LOT_ID is 1-indexed 
+	return (this->level_0_y * 100 + this->level_0_x) + 1;
+}
+
+pair<int, int> DataControlUnit::return_locat_xy(int curX, int curY) {
+	// WARNING : let the imgROI can update Dies at any level, which can only update in level == 2
+	int y = level_1_y * 100 + curY;
+	int x = level_1_x * 100 + curX;
+	return {x, y};
+}
 
 string DataControlUnit::currentInfoList() {
 	return this->infoList;
@@ -512,7 +525,12 @@ map<int, int> DataControlUnit::return_defect_count() {
 	res[0] = tot - defectCnt;
 	res[1] = defectCnt;
 
+	// real-time infoList
 	stringstream ss;
+	ss << "Col 0 : " << this->level_0_x << ", Row 0 : " << this->level_0_y << endl;
+	ss << "Col 1 : " << this->level_1_x << ", Row 1 : " << this->level_1_y << endl;
+	ss << "Col 2 : " << this->level_2_x << ", Row 2 : " << this->level_2_y << endl;
+
 	for(pair<int, int> i: res)
 		ss << i.first << " -> " << i.second << "\n";
 	infoList = ss.str();

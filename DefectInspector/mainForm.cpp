@@ -11,6 +11,12 @@ using namespace System::Windows::Forms::DataVisualization::Charting;
 using namespace DefectInspector;
 using namespace System::Threading;
 
+typedef struct _updateDieInfo {
+	int LOT_ID = 0;
+	int DieX = 0, DieY = 0;;
+	_updateDieInfo(int LOT_ID, int DieX, int DieY) :LOT_ID(LOT_ID), DieX(DieX), DieY(DieY) {}
+}updateDieInfo;
+
 //===============================
 // Global Variables Declartion
 
@@ -26,6 +32,9 @@ SqlCommunicator* sql = nullptr;
 // Map
 int yCurrent = 0, xCurrent = 0;
 
+// upadte Dies
+vector<updateDieInfo*> updateDies;
+string updateInfoLog;
 //===============================
 
 //---------------------------------------------------------------------
@@ -79,11 +88,45 @@ System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::Event
 System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs^ e) {
 	try {
 		// make a query and get the statmentHandle
-		// TODO : assoicate the update with amplify function
-		SQLHSTMT hstmt = sql->sqlCommand(L"UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL] SET[LOT_ID] = 131 WHERE[DieX] = 131 AND[DieY] = 31; ");
+		// TODO : make user know when UPDATE is done
+		
+		// construct the command with 3 params : LOT_ID, DieX, DieY
+		for (int i = 0; i<updateDies.size(); i++) {
+			updateDieInfo* info = updateDies[i];
+			
+			sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+			
+			stringstream ss;
+
+			ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
+			ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+			ss << " AND [Region] = " << info->LOT_ID << " ;";
+
+			//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
+			//ss << " SET [DefectType] = 0";
+			//ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+			//ss << " AND [Region] = " << info->LOT_ID << ";";
+
+			// convert string -> wstring
+			string Sql = ss.str();
+			
+			// DEBUG
+			lblInfo->Text = gcnew String(Sql.c_str());
+			
+			wstring updateSql(Sql.begin(), Sql.end());
+
+			// TODO : update data_controller
+
+			// send the UPDATE command to SqlCommunicator
+			SQLHSTMT hstmt = sql->sqlCommand(updateSql.c_str());
+			
+			// append on Log
+			updateInfoLog += Sql;
+
+		}
 	}
 	catch (System::Exception^ e) {
-		lblInfo->Text = e->Message;
+		lblInfo->Text += "\n------------------\n" + e->Message;
 	}
 }
 
@@ -119,6 +162,41 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 
 		xCurrent = xPosition;
 		yCurrent = yPosition;
+	}
+}
+
+System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
+	
+
+	if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+		// Only level 2 can update dies
+		if (data_controller->return_level() != 2)
+			return;
+
+		int gridSize = 1;
+		switch(data_controller->return_level()) {
+		case 1:
+			gridSize = 10;
+			break;
+		case 2:
+			gridSize = 100;
+			break;
+		default:
+			gridSize = 10;
+			break;
+		}
+		int yPosition = (e->Y / gridSize), xPosition = (e->X / gridSize);
+
+		int LOT_ID = data_controller->return_lotId();
+
+		// TODO
+		pair<int, int> DiePosition = data_controller->return_locat_xy(xPosition, yPosition);
+		int DieX = DiePosition.first, DieY = DiePosition.second;
+
+		// DEBUG
+		lblInfo->Text += "\nLOT_ID" + LOT_ID + "\nDieX=" + DieX + "\nDieY=" + DieY + "\n";
+		
+		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY));
 	}
 }
 
@@ -188,6 +266,11 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	updateRealTimeInfo();
 }
 
+System::Void mainForm::mainForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+	if(sql != nullptr)
+		sql->close();
+}
+
 //---------------------------------------------------------------------
 // Datbase related
 System::Void mainForm::connectToDb(System::Void) {
@@ -228,6 +311,7 @@ System::Void mainForm::connectToDb(System::Void) {
 		}
 	}
 	sql->close();
+	sql = nullptr;
 
 	// the consuming time used to load data
 	float cost = (float)(clock() - start) / CLOCKS_PER_SEC;

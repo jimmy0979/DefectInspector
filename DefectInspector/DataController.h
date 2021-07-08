@@ -56,6 +56,9 @@ public:
 	const int return_locat_x(void);
 	const int return_locat_y(void);
 
+	int return_lotId(void);
+	pair<int, int> return_locat_xy(int, int);
+
 	string currentInfoList(void);
 	map<int, int> return_defect_count(void);
 	void test(void)
