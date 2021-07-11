@@ -450,7 +450,7 @@ cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 			return cv::Scalar(0, 255, 0);
 		}
 	}
-
+}
 int DataControlUnit::return_lotId(void) {
 	// return LOT_ID of current die
 	// plus 1 since LOT_ID is 1-indexed 
