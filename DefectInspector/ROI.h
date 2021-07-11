@@ -11,9 +11,8 @@ class ROI
 {
 private:
 	cv::Mat img;
-	int ROI_W, ROI_L;
 public:
-	ROI(const int&,const int&);
+	ROI();
 	cv::Mat show(const vector<paint_unit>&,const int&);
 	bool seach_jpg(const string&);//searh stored img
 };

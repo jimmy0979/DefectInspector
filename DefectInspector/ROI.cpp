@@ -4,10 +4,8 @@ using namespace std;
 using namespace cv;
 
 
-ROI::ROI(const int& W, const int& L)
+ROI::ROI()
 {
-	ROI::ROI_W = W;
-	ROI::ROI_L = L;
 	ROI::img = Mat(Size(10000, 10000), CV_8UC3,Scalar(0,255,0));
 }
 
@@ -35,6 +33,6 @@ Mat ROI::show(const vector<paint_unit> &data, const int &level)
 	for(int i=0;i<data.size();i++)
 		rectangle(img, Rect(data[i].paintx * width, data[i].painty * width, width, width),data[i].color,-1);
 
-	resize(img,img,Size(ROI_W,ROI_L), 0, 0, cv::INTER_LINEAR);
+	//resize(img,img,Size(ROI_W,ROI_L), 0, 0, cv::INTER_LINEAR);
 	return img;
 }

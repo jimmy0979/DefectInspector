@@ -57,7 +57,7 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// initial Painter, Mapper
-		roi = new ROI(1000, 1000);
+		roi = new ROI();
 		die_map = new Map();
 		data_controller = new DataControlUnit;
 
@@ -326,17 +326,17 @@ System::Void mainForm::connectToDb(System::Void) {
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
 		UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
 
-		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y())));
+		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x())));
 		uiPainter->Invoke(MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
 	}
 	else {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
-	// TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
-	Drop(1);
-	Drop(0);
+	// (done)TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
+	//Drop(1);
+	//Drop(0);
 
 	// TODO : wait for delegate
 	// updatePlot();
@@ -391,10 +391,10 @@ System::Void mainForm::Drop(int dir) {
 	// then move the block by the direction
 	if (data_controller->change_block(dir)) {
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
-		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y(), data_controller->return_level()));
+		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y()));
 	}
 	if (data_controller->return_map_change()) {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
 	}
 
 	xCurrent = data_controller->return_locat_x();
@@ -404,7 +404,7 @@ System::Void mainForm::Drop(int dir) {
 
 System::Void mainForm::Amplify(bool amplifyFlag) {
 	if (data_controller->change_level(amplifyFlag)) {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
@@ -412,8 +412,8 @@ System::Void mainForm::Amplify(bool amplifyFlag) {
 	yCurrent = data_controller->return_locat_y();
 
 	// TODO : temp solution to avoid black Map occurs, should be deleted later and find the real bug
-	Drop(0);
-	Drop(1);
+	//Drop(0);
+	//Drop(1);
 	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
 }
 
