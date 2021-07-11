@@ -34,6 +34,7 @@ Mat ROI::show(const vector<paint_unit> &data, const int &level)
 		width = 100;
 	for(int i=0;i<data.size();i++)
 		rectangle(img, Rect(data[i].paintx * width, data[i].painty * width, width, width),data[i].color,-1);
+
 	resize(img,img,Size(ROI_W,ROI_L), 0, 0, cv::INTER_LINEAR);
 	return img;
 }

@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+#include <map>
 #include <utility>
 
 using namespace std;
@@ -40,10 +41,14 @@ private:
 	//ignore
 	void create_floder();
 	bool map_change = false;
-	int filter_variable = 0;//¨M©w¿z¿ï±ø¥óªºÅÜ¼Æ¡A¼È®É¥ý³o¼Ë
+	int filter_variable = 0;//ï¿½Mï¿½wï¿½zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü¼Æ¡Aï¿½È®É¥ï¿½ï¿½oï¿½ï¿½
 	//color function
 	cv::Scalar decide_color_roi(const data_unit*);//decide the color of piex at  ROI
 	cv::Scalar decide_color_map(const double&);//decide the color of piex at map
+
+	// realTime infoList
+	string infoList = "";
+
 public:
 	const int return_level(void) { return level;}
 	//System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
@@ -55,6 +60,22 @@ public:
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);
+
+	int return_lotId(void);
+	pair<int, int> return_locat_xy(int, int);
+
+	string currentInfoList(void);
+	map<int, int> return_defect_count(void);
+	void test(void)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			for (int j = 0; j < 10; j++)
+			{
+				cout << count_level_0[i * 10 + j] << '\n';
+			}
+		}
+	}
 	DataControlUnit()
 	{
 		index = new data_unit ** [10000];
