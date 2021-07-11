@@ -76,6 +76,7 @@ public:
 			}
 		}
 	}
+
 	DataControlUnit()
 	{
 		index = new data_unit ** [10000];

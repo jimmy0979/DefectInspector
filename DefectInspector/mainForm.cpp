@@ -119,6 +119,7 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 
 			// send the UPDATE command to SqlCommunicator
 			SQLHSTMT hstmt = sql->sqlCommand(updateSql.c_str());
+			sql->close();
 			
 			// append on Log
 			updateInfoLog += Sql;
