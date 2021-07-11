@@ -41,7 +41,7 @@ private:
 	//ignore
 	void create_floder();
 	bool map_change = false;
-	int filter_variable = 0;//�M�w�z������ܼơA�Ȯɥ��o��
+	int filter_variable = 0;//the variable decide show which type's color
 	//color function
 	cv::Scalar decide_color_roi(const data_unit*);//decide the color of piex at  ROI
 	cv::Scalar decide_color_map(const double&);//decide the color of piex at map

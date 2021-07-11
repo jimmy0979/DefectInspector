@@ -413,7 +413,7 @@ const int DataControlUnit::return_locat_y(void)
 //color function
 cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 {
-	switch (DataControlUnit::filter_variable)//�z�����A�@���u�|��ܤ@��
+	switch (DataControlUnit::filter_variable)//the condition to decide which color show, show one color once
 	{
 	case 0://defeat
 		return cv::Scalar(0, 0, 255);
@@ -422,10 +422,10 @@ cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 }
 cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 {
-	switch (DataControlUnit::filter_variable)//�z�����A�@���u�|��ܤ@��
+	switch (DataControlUnit::filter_variable)//check exist defeat or not
 	{
 	case 0://defeat
-		if (percent > 0.49)//level 6 level�V�j�A���ܦ�����ҶV�h
+		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
 		{
 			return cv::Scalar(0, 0, 255);
 		}
