@@ -149,6 +149,20 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 	return output;
 }
 
+bool DataControlUnit::update_data(const int& x, const int& y) {
+	if (index[y][x] == nullptr)
+		return false;
+
+	count_level_0[(y / 1000) * 10 + (x / 1000)]--;
+	count_level_1[(y / 100) * 100 + (x / 100)]--;
+	count_level_2[(y / 10) * 1000 + (x / 10)]--;
+
+	free(index[y][x]);
+	index[y][x] = nullptr;
+
+	return true;
+}
+
 bool DataControlUnit::change_level(const bool& enlarge)
 {
 	if (enlarge)
@@ -460,8 +474,8 @@ int DataControlUnit::return_lotId(void) {
 
 pair<int, int> DataControlUnit::return_locat_xy(int curX, int curY) {
 	// WARNING : let the imgROI can update Dies at any level, which can only update in level == 2
-	int y = level_1_y * 100 + curY;
-	int x = level_1_x * 100 + curX;
+	int y = level_1_y * 100 + level_2_y * 10 + curY;
+	int x = level_1_x * 100 + level_2_x * 10 + curX;
 	return {x, y};
 }
 

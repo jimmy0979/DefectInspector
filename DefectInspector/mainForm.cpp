@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <queue>
 using namespace System::Windows::Forms::DataVisualization::Charting;
 
 using namespace DefectInspector;
@@ -33,7 +34,7 @@ SqlCommunicator* sql = nullptr;
 int yCurrent = 0, xCurrent = 0;
 
 // upadte Dies
-vector<updateDieInfo*> updateDies;
+queue<updateDieInfo*> updateDies;
 string updateInfoLog;
 //===============================
 
@@ -62,8 +63,8 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		data_controller = new DataControlUnit;
 
 		// updatePlot();
-		this->chart1->Series->Clear();
-		this->chart1->Series->Add("DefectType");
+		this->chartDies->Series->Clear();
+		this->chartDies->Series->Add("DefectType");
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -91,8 +92,10 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 		// TODO : make user know when UPDATE is done
 		
 		// construct the command with 3 params : LOT_ID, DieX, DieY
-		for (int i = 0; i<updateDies.size(); i++) {
-			updateDieInfo* info = updateDies[i];
+		int size = updateDies.size();
+		for (int i = 0; i<size; i++) {
+			updateDieInfo* info = updateDies.front();
+			updateDies.pop();
 			
 			sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 			
@@ -120,11 +123,20 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 			// send the UPDATE command to SqlCommunicator
 			SQLHSTMT hstmt = sql->sqlCommand(updateSql.c_str());
 			sql->close();
-			
+			// update local data_controller
+			int abs_diex = 1000 * ((info->LOT_ID - 1) % 10) + info->DieX;
+			int abs_diey = 1000 * ((info->LOT_ID - 1) / 10) + info->DieY;
+			data_controller->update_data(abs_diex, abs_diey);
+
+			Drop(1);
+			Drop(0);
+
 			// append on Log
 			updateInfoLog += Sql;
 
 		}
+
+		this->listDieInfo->Items->Clear();
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text += "\n------------------\n" + e->Message;
@@ -196,8 +208,10 @@ System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows:
 
 		// DEBUG
 		lblInfo->Text += "\nLOT_ID" + LOT_ID + "\nDieX=" + DieX + "\nDieY=" + DieY + "\n";
+		this->listDieInfo->Items->Add("Region" + LOT_ID + ", DieX = " + DieX + ", DieY = " + DieY);
 		
-		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY));
+		updateDies.push(new updateDieInfo(LOT_ID, DieX, DieY));
+		lblInfo->Text += "Queue Size" + updateDies.size() + "\n";
 	}
 }
 
@@ -432,14 +446,14 @@ System::Void mainForm::updateInfoList() {
 }
 
 System::Void mainForm::updatePlot() {
-	this->chart1->Series["DefectType"]->Points->Clear();
+	this->chartDies->Series["DefectType"]->Points->Clear();
 	updateInfoText.clear();
 
 	map<int, int> res = data_controller->return_defect_count();
 	for (pair<int, int> i : res) {
 		//this->chart1->Series["DefectType"]->XValueType = ChartValueType::String;
 		//this->chart1->Series["DefectType"]->YValueType = ChartValueType::Int64;
-		this->chart1->Series["DefectType"]->Points->AddXY(i.first, i.second);
+		this->chartDies->Series["DefectType"]->Points->AddXY(i.first, i.second);
 	}
 }
 
