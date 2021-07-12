@@ -50,6 +50,7 @@ public:
 	void put_data(const int&, const int&, const int&, const string&);//take data from sqlcommuncator into datacontroller(with bincode input)
 	void put_data(const int&, const int&, const int&);//(no bincode for test)
 	vector<paint_unit> pull_data(const bool&);
+	bool update_data(const int& , const int&);
 	bool change_level(const bool&);
 	bool change_block(const int&);
 	bool return_map_change(void);
