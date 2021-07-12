@@ -326,11 +326,11 @@ System::Void mainForm::connectToDb(System::Void) {
 		UpdateImage^ uiMapper = gcnew UpdateImage(this, &mainForm::UpdateMapperBitmap);
 		UpdateImage^ uiPainter = gcnew UpdateImage(this, &mainForm::UpdatePainterBitmap);
 
-		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x())));
+		uiMapper->Invoke(MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y())));
 		uiPainter->Invoke(MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level())));
 	}
 	else {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
@@ -394,7 +394,7 @@ System::Void mainForm::Drop(int dir) {
 		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y()));
 	}
 	if (data_controller->return_map_change()) {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 	}
 
 	xCurrent = data_controller->return_locat_x();
@@ -404,7 +404,7 @@ System::Void mainForm::Drop(int dir) {
 
 System::Void mainForm::Amplify(bool amplifyFlag) {
 	if (data_controller->change_level(amplifyFlag)) {
-		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_level(), data_controller->return_locat_x()));
+		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 	}
 
