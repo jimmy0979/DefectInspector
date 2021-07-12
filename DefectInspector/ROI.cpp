@@ -6,7 +6,7 @@ using namespace cv;
 
 ROI::ROI()
 {
-	ROI::img = Mat(Size(10000, 10000), CV_8UC3,Scalar(0,255,0));
+	ROI::img = Mat(Size(10000, 10000), CV_8UC3, Scalar(0,255,0));
 }
 
 bool ROI::seach_jpg(const string &target)
