@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 #include <queue>
+
+#include <opencv2\imgproc\types_c.h>
+
 using namespace System::Windows::Forms::DataVisualization::Charting;
 
 using namespace DefectInspector;
@@ -36,11 +39,15 @@ int yCurrent = 0, xCurrent = 0;
 // upadte Dies
 queue<updateDieInfo*> updateDies;
 string updateInfoLog;
+
+// stack Image
+vector<cv::Mat> comparedFrames;
+cv::Mat currentMat;
 //===============================
 
 //---------------------------------------------------------------------
 
-System::Drawing::Bitmap^ MatToBitmap(cv::Mat img) {
+System::Drawing::Bitmap^ MatToBitmap(cv::Mat img, bool isROI = false) {
 	// covert OpenCV::Mat to Bitmap^
 	// in order to show on clr::pictureBox simply
 
@@ -149,7 +156,7 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 
 	// TRANSFER : TODO : amplify function
 	// only consider drop & moving
-	if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+	if (e->Button == System::Windows::Forms::MouseButtons::Left || e->Button == System::Windows::Forms::MouseButtons::Right) {
 		int yPosition = (e->Y / 48), xPosition = (e->X / 24);
 		// if (48 * yPosition < e->Y)	yPosition++;
 		// if (24 * xPosition < e->X)	xPosition++;
@@ -175,13 +182,31 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 
 		xCurrent = xPosition;
 		yCurrent = yPosition;
+
+		// Left Click on imgMap only show the mat, return here 
+		if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+			return;
+		}
+
+
+		/////////////////////////////////////////////////////////////////
+		// Right Click on imgMap to select frame that need to be compared
+		// add the current mat into comparedFrames
+		cv::Mat current = roi->show(data_controller->pull_data(true), data_controller->return_level());
+		comparedFrames.push_back(current.clone());
+
+		int Region = data_controller->return_lotId();
+		int Level = data_controller->return_level();
+
+		this->listFrames->Items->Add("Region" + Region + ", FrameX = " + xPosition + ", FrameY = " + yPosition + ", Level = " + Level);
+
 	}
 }
 
 System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
 	
-
-	if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+	// Right Click on imgROI to select dies that need to update
+	if (e->Button == System::Windows::Forms::MouseButtons::Right) {
 		// Only level 2 can update dies
 		if (data_controller->return_level() != 2)
 			return;
@@ -284,6 +309,61 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 System::Void mainForm::mainForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
 	if(sql != nullptr)
 		sql->close();
+}
+
+System::Void mainForm::tabControl1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+	// if selectedIndex is 'stackImage', show the compare of comapredFrames
+	int selectedIndex = this->tctrlImage->SelectedIndex;
+	if (selectedIndex == 1) {
+		// BUG : Only Black will be presented
+
+		// in tabPage : tpStackImage
+		int len = comparedFrames.size();
+
+		//for (int i = 0; i<len; ++i) {
+		//	cv::imshow("showAll", comparedFrames[i]);
+		//	cv::waitKey();
+		//}
+
+		cv::Mat diff = comparedFrames[0];
+		cv::Mat compared = diff.clone();
+
+		lblInfo->Text = "comparedFrames.size() = " + len + "\n";
+
+		for (int i = 1; i<len; ++i) {
+			// diff = (diff != comparedFrames[i]);
+
+			// calc the difference
+			cv::absdiff(diff, comparedFrames[i], diff);
+		}
+
+		//// Get the mask if difference greater than th
+		//int th = 10;  // 0
+		//cv::Mat mask(diff.size(), CV_8UC1);
+		//for (int j = 0; j < diff.rows; ++j) {
+		//	for (int i = 0; i < diff.cols; ++i) {
+		//		cv::Vec3b pix = diff.at<cv::Vec3b>(j, i);
+		//		int val = (pix[0] + pix[1] + pix[2]);
+		//		if (val > th) {
+		//			mask.at<unsigned char>(j, i) = 255;
+		//		}
+		//	}
+		//}
+
+		// BUG : Can't cvtColor and bitwise_and
+		cv::Mat res;
+		cv::bitwise_not(diff, diff);
+		// cv::cvtColor(diff, diff, CV_BGR2GRAY);
+		// cv::bitwise_and(compared, compared, compared, diff);
+
+		// show the diff
+		this->imgCompared->Image = MatToBitmap(diff);
+	}
+	else if (selectedIndex == 0) {
+		// refresh the image ROI
+		Drop(1);
+		Drop(0);
+	}
 }
 
 //---------------------------------------------------------------------
@@ -404,8 +484,8 @@ System::Void mainForm::Drop(int dir) {
 	// directions : {0: left, 1: right, 2: up, 3: down}
 	// then move the block by the direction
 	if (data_controller->change_block(dir)) {
-		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()));
 		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
 	}
 	if (data_controller->return_map_change()) {
 		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));

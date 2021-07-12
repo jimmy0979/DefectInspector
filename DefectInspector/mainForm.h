@@ -57,10 +57,24 @@ namespace DefectInspector {
     private: System::Windows::Forms::DataVisualization::Charting::Chart^ chartDies;
 
     private: System::Windows::Forms::TabControl^ tctrlInfo;
+    private: System::Windows::Forms::TabPage^ tpInfo;
+    private: System::Windows::Forms::TabPage^ tpSelectedDies;
 
-    private: System::Windows::Forms::TabPage^ tabPage1;
-    private: System::Windows::Forms::TabPage^ tabPage2;
+
+
     private: System::Windows::Forms::ListBox^ listDieInfo;
+    private: System::Windows::Forms::TabControl^ tctrlImage;
+    private: System::Windows::Forms::TabPage^ tpROI;
+    private: System::Windows::Forms::TabPage^ tpStackImage;
+    private: System::Windows::Forms::TabPage^ tpSelectedFrames;
+
+
+
+
+
+
+    private: System::Windows::Forms::ListBox^ listFrames;
+    private: System::Windows::Forms::PictureBox^ imgCompared;
 
 
 
@@ -86,20 +100,31 @@ namespace DefectInspector {
             this->btnUpdate = (gcnew System::Windows::Forms::Button());
             this->chartDies = (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
             this->tctrlInfo = (gcnew System::Windows::Forms::TabControl());
-            this->tabPage1 = (gcnew System::Windows::Forms::TabPage());
-            this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
+            this->tpInfo = (gcnew System::Windows::Forms::TabPage());
+            this->tpSelectedDies = (gcnew System::Windows::Forms::TabPage());
             this->listDieInfo = (gcnew System::Windows::Forms::ListBox());
+            this->tpSelectedFrames = (gcnew System::Windows::Forms::TabPage());
+            this->listFrames = (gcnew System::Windows::Forms::ListBox());
+            this->tctrlImage = (gcnew System::Windows::Forms::TabControl());
+            this->tpROI = (gcnew System::Windows::Forms::TabPage());
+            this->tpStackImage = (gcnew System::Windows::Forms::TabPage());
+            this->imgCompared = (gcnew System::Windows::Forms::PictureBox());
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgROI))->BeginInit();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->BeginInit();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chartDies))->BeginInit();
             this->tctrlInfo->SuspendLayout();
-            this->tabPage1->SuspendLayout();
-            this->tabPage2->SuspendLayout();
+            this->tpInfo->SuspendLayout();
+            this->tpSelectedDies->SuspendLayout();
+            this->tpSelectedFrames->SuspendLayout();
+            this->tctrlImage->SuspendLayout();
+            this->tpROI->SuspendLayout();
+            this->tpStackImage->SuspendLayout();
+            (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgCompared))->BeginInit();
             this->SuspendLayout();
             // 
             // imgROI
             // 
-            this->imgROI->Location = System::Drawing::Point(13, 14);
+            this->imgROI->Location = System::Drawing::Point(7, 8);
             this->imgROI->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
             this->imgROI->MinimumSize = System::Drawing::Size(1000, 1000);
             this->imgROI->Name = L"imgROI";
@@ -111,18 +136,19 @@ namespace DefectInspector {
             // imgMap
             // 
             this->imgMap->Anchor = System::Windows::Forms::AnchorStyles::None;
-            this->imgMap->Location = System::Drawing::Point(1037, 14);
+            this->imgMap->BackColor = System::Drawing::SystemColors::ControlLightLight;
+            this->imgMap->Location = System::Drawing::Point(1090, 14);
             this->imgMap->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
             this->imgMap->MinimumSize = System::Drawing::Size(240, 480);
             this->imgMap->Name = L"imgMap";
-            this->imgMap->Size = System::Drawing::Size(360, 607);
+            this->imgMap->Size = System::Drawing::Size(240, 480);
             this->imgMap->TabIndex = 1;
             this->imgMap->TabStop = false;
             this->imgMap->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &mainForm::imgMap_MouseDown);
             // 
             // btnConnectSql
             // 
-            this->btnConnectSql->Location = System::Drawing::Point(1647, 565);
+            this->btnConnectSql->Location = System::Drawing::Point(1612, 511);
             this->btnConnectSql->Name = L"btnConnectSql";
             this->btnConnectSql->Size = System::Drawing::Size(187, 56);
             this->btnConnectSql->TabIndex = 2;
@@ -132,15 +158,15 @@ namespace DefectInspector {
             // 
             // lblInfo
             // 
-            this->lblInfo->Location = System::Drawing::Point(16, 13);
+            this->lblInfo->Location = System::Drawing::Point(17, 13);
             this->lblInfo->Name = L"lblInfo";
-            this->lblInfo->Size = System::Drawing::Size(430, 459);
+            this->lblInfo->Size = System::Drawing::Size(392, 418);
             this->lblInfo->TabIndex = 3;
             this->lblInfo->Text = L"NONE";
             // 
             // btnUpdate
             // 
-            this->btnUpdate->Location = System::Drawing::Point(1428, 564);
+            this->btnUpdate->Location = System::Drawing::Point(1366, 511);
             this->btnUpdate->Name = L"btnUpdate";
             this->btnUpdate->Size = System::Drawing::Size(187, 57);
             this->btnUpdate->TabIndex = 4;
@@ -155,47 +181,48 @@ namespace DefectInspector {
             this->chartDies->ChartAreas->Add(chartArea1);
             legend1->Name = L"Legend1";
             this->chartDies->Legends->Add(legend1);
-            this->chartDies->Location = System::Drawing::Point(1037, 629);
+            this->chartDies->Location = System::Drawing::Point(1090, 629);
             this->chartDies->Name = L"chartDies";
             series1->ChartArea = L"ChartArea1";
             series1->Legend = L"Legend1";
             series1->Name = L"Series1";
             this->chartDies->Series->Add(series1);
-            this->chartDies->Size = System::Drawing::Size(639, 372);
+            this->chartDies->Size = System::Drawing::Size(637, 383);
             this->chartDies->TabIndex = 5;
-            this->chartDies->Text = L"chart1";
+            this->chartDies->Text = L"chartDies";
             // 
             // tctrlInfo
             // 
-            this->tctrlInfo->Controls->Add(this->tabPage1);
-            this->tctrlInfo->Controls->Add(this->tabPage2);
-            this->tctrlInfo->Location = System::Drawing::Point(1424, 14);
+            this->tctrlInfo->Controls->Add(this->tpInfo);
+            this->tctrlInfo->Controls->Add(this->tpSelectedDies);
+            this->tctrlInfo->Controls->Add(this->tpSelectedFrames);
+            this->tctrlInfo->Location = System::Drawing::Point(1366, 4);
             this->tctrlInfo->Name = L"tctrlInfo";
             this->tctrlInfo->SelectedIndex = 0;
-            this->tctrlInfo->Size = System::Drawing::Size(471, 532);
+            this->tctrlInfo->Size = System::Drawing::Size(433, 490);
             this->tctrlInfo->TabIndex = 6;
             // 
-            // tabPage1
+            // tpInfo
             // 
-            this->tabPage1->Controls->Add(this->lblInfo);
-            this->tabPage1->Location = System::Drawing::Point(4, 37);
-            this->tabPage1->Name = L"tabPage1";
-            this->tabPage1->Padding = System::Windows::Forms::Padding(3);
-            this->tabPage1->Size = System::Drawing::Size(463, 491);
-            this->tabPage1->TabIndex = 0;
-            this->tabPage1->Text = L"RealTime-info";
-            this->tabPage1->UseVisualStyleBackColor = true;
+            this->tpInfo->Controls->Add(this->lblInfo);
+            this->tpInfo->Location = System::Drawing::Point(4, 37);
+            this->tpInfo->Name = L"tpInfo";
+            this->tpInfo->Padding = System::Windows::Forms::Padding(3);
+            this->tpInfo->Size = System::Drawing::Size(425, 449);
+            this->tpInfo->TabIndex = 0;
+            this->tpInfo->Text = L"info";
+            this->tpInfo->UseVisualStyleBackColor = true;
             // 
-            // tabPage2
+            // tpSelectedDies
             // 
-            this->tabPage2->Controls->Add(this->listDieInfo);
-            this->tabPage2->Location = System::Drawing::Point(4, 37);
-            this->tabPage2->Name = L"tabPage2";
-            this->tabPage2->Padding = System::Windows::Forms::Padding(3);
-            this->tabPage2->Size = System::Drawing::Size(463, 491);
-            this->tabPage2->TabIndex = 1;
-            this->tabPage2->Text = L"Selected Feature";
-            this->tabPage2->UseVisualStyleBackColor = true;
+            this->tpSelectedDies->Controls->Add(this->listDieInfo);
+            this->tpSelectedDies->Location = System::Drawing::Point(4, 37);
+            this->tpSelectedDies->Name = L"tpSelectedDies";
+            this->tpSelectedDies->Padding = System::Windows::Forms::Padding(3);
+            this->tpSelectedDies->Size = System::Drawing::Size(425, 449);
+            this->tpSelectedDies->TabIndex = 1;
+            this->tpSelectedDies->Text = L"Selected Dies";
+            this->tpSelectedDies->UseVisualStyleBackColor = true;
             // 
             // listDieInfo
             // 
@@ -203,21 +230,86 @@ namespace DefectInspector {
             this->listDieInfo->ItemHeight = 28;
             this->listDieInfo->Location = System::Drawing::Point(21, 19);
             this->listDieInfo->Name = L"listDieInfo";
-            this->listDieInfo->Size = System::Drawing::Size(422, 452);
+            this->listDieInfo->Size = System::Drawing::Size(386, 424);
             this->listDieInfo->TabIndex = 0;
+            // 
+            // tpSelectedFrames
+            // 
+            this->tpSelectedFrames->Controls->Add(this->listFrames);
+            this->tpSelectedFrames->Location = System::Drawing::Point(4, 37);
+            this->tpSelectedFrames->Name = L"tpSelectedFrames";
+            this->tpSelectedFrames->Size = System::Drawing::Size(425, 449);
+            this->tpSelectedFrames->TabIndex = 2;
+            this->tpSelectedFrames->Text = L"Selected Frames";
+            this->tpSelectedFrames->UseVisualStyleBackColor = true;
+            // 
+            // listFrames
+            // 
+            this->listFrames->FormattingEnabled = true;
+            this->listFrames->ItemHeight = 28;
+            this->listFrames->Location = System::Drawing::Point(15, 15);
+            this->listFrames->Name = L"listFrames";
+            this->listFrames->Size = System::Drawing::Size(393, 424);
+            this->listFrames->TabIndex = 0;
+            // 
+            // tctrlImage
+            // 
+            this->tctrlImage->Alignment = System::Windows::Forms::TabAlignment::Left;
+            this->tctrlImage->Controls->Add(this->tpROI);
+            this->tctrlImage->Controls->Add(this->tpStackImage);
+            this->tctrlImage->Location = System::Drawing::Point(-1, 0);
+            this->tctrlImage->Multiline = true;
+            this->tctrlImage->Name = L"tctrlImage";
+            this->tctrlImage->SelectedIndex = 0;
+            this->tctrlImage->Size = System::Drawing::Size(1060, 1024);
+            this->tctrlImage->TabIndex = 7;
+            this->tctrlImage->SelectedIndexChanged += gcnew System::EventHandler(this, &mainForm::tabControl1_SelectedIndexChanged);
+            // 
+            // tpROI
+            // 
+            this->tpROI->Controls->Add(this->imgROI);
+            this->tpROI->Location = System::Drawing::Point(39, 4);
+            this->tpROI->Name = L"tpROI";
+            this->tpROI->Padding = System::Windows::Forms::Padding(3);
+            this->tpROI->Size = System::Drawing::Size(1017, 1016);
+            this->tpROI->TabIndex = 0;
+            this->tpROI->Text = L"ROI";
+            this->tpROI->UseVisualStyleBackColor = true;
+            // 
+            // tpStackImage
+            // 
+            this->tpStackImage->Controls->Add(this->imgCompared);
+            this->tpStackImage->Location = System::Drawing::Point(39, 4);
+            this->tpStackImage->Name = L"tpStackImage";
+            this->tpStackImage->Padding = System::Windows::Forms::Padding(3);
+            this->tpStackImage->Size = System::Drawing::Size(1017, 1016);
+            this->tpStackImage->TabIndex = 1;
+            this->tpStackImage->Text = L"stackImage";
+            this->tpStackImage->UseVisualStyleBackColor = true;
+            // 
+            // imgCompared
+            // 
+            this->imgCompared->Location = System::Drawing::Point(6, 6);
+            this->imgCompared->MaximumSize = System::Drawing::Size(1000, 1000);
+            this->imgCompared->MinimumSize = System::Drawing::Size(1000, 1000);
+            this->imgCompared->Name = L"imgCompared";
+            this->imgCompared->Size = System::Drawing::Size(1000, 1000);
+            this->imgCompared->TabIndex = 8;
+            this->imgCompared->TabStop = false;
             // 
             // mainForm
             // 
             this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
-            this->ClientSize = System::Drawing::Size(1917, 1036);
+            this->BackColor = System::Drawing::SystemColors::ActiveCaption;
+            this->ClientSize = System::Drawing::Size(1820, 1024);
+            this->Controls->Add(this->tctrlImage);
             this->Controls->Add(this->tctrlInfo);
             this->Controls->Add(this->chartDies);
             this->Controls->Add(this->btnUpdate);
             this->Controls->Add(this->btnConnectSql);
             this->Controls->Add(this->imgMap);
-            this->Controls->Add(this->imgROI);
             this->Font = (gcnew System::Drawing::Font(L"Consolas", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->KeyPreview = true;
@@ -231,8 +323,13 @@ namespace DefectInspector {
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->EndInit();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chartDies))->EndInit();
             this->tctrlInfo->ResumeLayout(false);
-            this->tabPage1->ResumeLayout(false);
-            this->tabPage2->ResumeLayout(false);
+            this->tpInfo->ResumeLayout(false);
+            this->tpSelectedDies->ResumeLayout(false);
+            this->tpSelectedFrames->ResumeLayout(false);
+            this->tctrlImage->ResumeLayout(false);
+            this->tpROI->ResumeLayout(false);
+            this->tpStackImage->ResumeLayout(false);
+            (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgCompared))->EndInit();
             this->ResumeLayout(false);
 
         }
@@ -245,6 +342,8 @@ namespace DefectInspector {
         System::Void imgROI_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
         System::Void mainForm_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e);
         System::Void mainForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e);
+        System::Void tabControl1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
+        
         System::Void connectToDb(System::Void);
 
         // for delegate use
