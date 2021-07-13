@@ -369,14 +369,9 @@ System::Void mainForm::tabControl1_SelectedIndexChanged(System::Object^ sender, 
 
 System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 {
-	
-}
-
-System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ sender, System::EventArgs^ e)
-{
-	if (data_controller != nullptr)
+	if (data_controller != nullptr)//check data_controller has been initial
 	{
-		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))
+		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
 		{
 			die_map->change_background(data_controller->return_fliter_setting());
 			roi->change_background(data_controller->return_fliter_setting());
@@ -384,7 +379,22 @@ System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ send
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
 		}
 	}
-	FilterBox->Text = Filter_comboBox->Text;
+	FilterBox->Text = Filter_comboBox->Text;//show what type filter is now
+}
+
+System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	if (data_controller != nullptr)//check data_controller has been initial
+	{
+		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
+		{
+			die_map->change_background(data_controller->return_fliter_setting());
+			roi->change_background(data_controller->return_fliter_setting());
+			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
+			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
+		}
+	}
+	FilterBox->Text = Filter_comboBox->Text;//show what type filter is now
 }
 
 System::Void mainForm::mainForm_Click(System::Object^ sender, System::EventArgs^ e) {
