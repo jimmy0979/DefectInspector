@@ -387,6 +387,9 @@ System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ send
 	FilterBox->Text = Filter_comboBox->Text;
 }
 
+System::Void mainForm::mainForm_Click(System::Object^ sender, System::EventArgs^ e) {
+	this->label1->Focus();
+}
 
 //---------------------------------------------------------------------
 // Datbase related
