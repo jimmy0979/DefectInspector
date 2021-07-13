@@ -10,6 +10,10 @@
 
 using namespace std;
 
+enum Data_type {
+	AllDefeat = 0, NormalDies
+};
+
 typedef struct Paint_Unit
 {
 	int paintx, painty;
@@ -41,7 +45,7 @@ private:
 	//ignore
 	void create_floder();
 	bool map_change = false;
-	int filter_variable = 0;//the variable decide show which type's color
+	Data_type filter_variable = AllDefeat;//the variable decide show which type's die
 	//color function
 	cv::Scalar decide_color_roi(const data_unit*);//decide the color of piex at  ROI
 	cv::Scalar decide_color_map(const double&);//decide the color of piex at map
@@ -58,6 +62,8 @@ public:
 	bool update_data(const int& , const int&);
 	bool change_level(const bool&);
 	bool change_block(const int&);
+	bool change_filter(const int&);//change the type of dies you can visible, if return false mean doesn't change type
+	const Data_type return_fliter_setting(void);
 	bool return_map_change(void);
 	const int return_locat_x(void);
 	const int return_locat_y(void);

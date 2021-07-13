@@ -58,52 +58,37 @@ void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
 vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 {
 	vector<paint_unit> output;
-	data_unit* temp;
 	int start_x ,start_y; 
 	double percent;
-	cv::Scalar c;
+	int block_size;//ROI檢查區塊邊的大小 or Map含有的晶粒個數
 	if (for_roi)
 	{
-		if (level == 2)
-		{
+		switch (this->level) {
+		case 2:
 			start_x = level_0_x * 1000 + level_1_x * 100 + level_2_x * 10;
 			start_y = level_0_y * 1000 + level_1_y * 100 + level_2_y * 10;
-			for (int i = 0; i < 10; i++)
-			{
-				for (int j = 0; j < 10; j++)
-				{
-					if (index[start_y+i][start_x+j] != nullptr)
-					{
-						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
-					}
-				}
-			}
-		}
-		else if (level == 1)
-		{
+			block_size = 10;
+			break;
+		case 1:
 			start_x = level_0_x * 1000 + level_1_x * 100;
 			start_y = level_0_y * 1000 + level_1_y * 100;
-			for (int i = 0; i < 100; i++)
-			{
-				for (int j = 0; j < 100; j++)
-				{
-					if (index[start_y + i][start_x + j] != nullptr)
-					{
-						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
-					}
-				}
-			}
-		}
-		else
-		{
+			block_size = 100;
+			break;
+		case 0:
 			start_x = level_0_x * 1000;
 			start_y = level_0_y * 1000;
-			for (int i = 0; i < 1000; i++)
-			{
-				for (int j = 0; j < 1000; j++)
-				{
-					if (index[start_y + i][start_x + j] != nullptr)
-					{
+			block_size = 1000;
+		}
+		for (int i = 0; i < block_size; i++){
+			for (int j = 0; j < block_size; j++){
+				switch (this->filter_variable) {
+				case Data_type::AllDefeat:
+					if (index[start_y + i][start_x + j] != nullptr) {
+						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
+					}
+					break;
+				case Data_type::NormalDies:
+					if (index[start_y + i][start_x + j] == nullptr) {
 						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
 					}
 				}
@@ -386,6 +371,20 @@ bool DataControlUnit::change_block(const int& direction)
 	return false;
 }
 
+bool DataControlUnit::change_filter(const int& type)//change the type of dies you can visible
+{
+	if ((int)this->filter_variable != type) {
+		this->filter_variable = (Data_type)type;
+		return true;
+	}
+	return false;
+}
+
+const Data_type DataControlUnit::return_fliter_setting(void)
+{
+	return this->filter_variable;
+}
+
 bool DataControlUnit::return_map_change(void)
 {
 	bool result;
@@ -429,16 +428,17 @@ cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 {
 	switch (DataControlUnit::filter_variable)//the condition to decide which color show, show one color once
 	{
-	case 0://defeat
+	case Data_type::AllDefeat:
 		return cv::Scalar(0, 0, 255);
-
+	case Data_type::NormalDies:
+		return cv::Scalar(0, 255, 0);
 	}
 }
 cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 {
 	switch (DataControlUnit::filter_variable)//check exist defeat or not
 	{
-	case 0://defeat
+	case Data_type::AllDefeat:
 		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
 		{
 			return cv::Scalar(0, 0, 255);
@@ -462,6 +462,31 @@ cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 		else//level 1
 		{
 			return cv::Scalar(0, 255, 0);
+		}
+	case Data_type::NormalDies:
+		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
+		{
+			return cv::Scalar(0, 153, 0);
+		}
+		else if (percent > 0.25)//level 5
+		{
+			return cv::Scalar(0, 204, 0);
+		}
+		else if (percent > 0.125)//level 4
+		{
+			return cv::Scalar(0, 255, 0);
+		}
+		else if (percent > 0.0625)//level 3
+		{
+			return cv::Scalar(128, 255, 128);
+		}
+		else if (percent > 0.03125)//level 2
+		{
+			return cv::Scalar(179, 255, 179);
+		}
+		else//level 1
+		{
+			return cv::Scalar(255, 255, 255);
 		}
 	}
 }

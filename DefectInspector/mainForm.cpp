@@ -68,6 +68,7 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		roi = new ROI();
 		die_map = new Map();
 		data_controller = new DataControlUnit;
+		this->Filter_comboBox->SelectedIndex = 0;//initial show data type is "AllDefeat"
 
 		// updatePlot();
 		this->chartDies->Series->Clear();
@@ -365,6 +366,27 @@ System::Void mainForm::tabControl1_SelectedIndexChanged(System::Object^ sender, 
 		Drop(0);
 	}
 }
+
+System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	
+}
+
+System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	if (data_controller != nullptr)
+	{
+		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))
+		{
+			die_map->change_background(data_controller->return_fliter_setting());
+			roi->change_background(data_controller->return_fliter_setting());
+			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
+			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
+		}
+	}
+	FilterBox->Text = Filter_comboBox->Text;
+}
+
 
 //---------------------------------------------------------------------
 // Datbase related
