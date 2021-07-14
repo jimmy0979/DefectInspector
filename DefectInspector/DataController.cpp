@@ -103,7 +103,10 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
+					if(this->filter_variable == Data_type::AllDefeat)//¼È®É³o¼Ë¼g
+						percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
+					else
+						percent = 1 - (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
@@ -114,7 +117,10 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
+					if(this->filter_variable == Data_type::AllDefeat)
+						percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
+					else
+						percent = 1- (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
@@ -125,7 +131,10 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0; j < 10; j++)
 				{
-					percent = (double)(count_level_0[i * 10 + j]) / 1000000;
+					if (this->filter_variable == Data_type::AllDefeat)
+						percent = (double)(count_level_0[i * 10 + j]) / 1000000;
+					else
+						percent = 1 - (double)(count_level_0[i * 10 + j]) / 1000000;
 					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
 				}
 			}
