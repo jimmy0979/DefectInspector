@@ -554,3 +554,66 @@ map<int, int> DataControlUnit::return_defect_count() {
 
 	return res;
 }
+
+void DataControlUnit::insert_statistics(const int& x, const int& y, const data_unit* input_data){
+	if (input_data->defeat_type != 0){//check whether exist defeat
+		map<int, statistics_node>::iterator itr = statistics_map.find(input_data->defeat_type);
+		if (itr == statistics_map.end()) {//chek whether key exist 
+			statistics_map[input_data->defeat_type] = statistics_node(x, y);//doesn't exist , add new node and insert data
+		}
+		else{
+			itr->second.insert(x, y);//exist insert data directly
+		}
+	}
+}
+
+void DataControlUnit::Statistics_node::insert(const int& x, const int& y){
+	node_count_level_0[(y / 1000) * 10 + (x / 1000)]++;
+	node_count_level_1[(y / 100) * 100 + (x / 100)]++;
+}
+
+int DataControlUnit::Statistics_node::search_statistics(const int& x, const int& y){
+	return node_count_level_0[y * 10 + x];
+}
+
+int DataControlUnit::Statistics_node::search_statistics(const int& x0, const int& y0, const int& x1, const int& y1){
+	return node_count_level_1[y0 * 1000 + x0 * 10 + y1 * 100 + x1];
+}
+
+int DataControlUnit::get_statistics_data(const int& x, const int& y, const int& target)
+{
+	map<int, statistics_node>::iterator itr = statistics_map.find(target);
+	if (itr != statistics_map.end())//chek whether key exist 
+	{
+		return itr->second.search_statistics(x, y);
+	}
+	return 0;
+}
+
+int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& target)
+{
+	map<int, statistics_node>::iterator itr = statistics_map.find(target);
+	if (itr != statistics_map.end())//chek whether key exist 
+	{
+		return itr->second.search_statistics(x0, y0, x1, y1);
+	}
+	return 0;
+}
+
+int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& x2, const int& y2, const int& target)
+{
+	int result = 0;
+	int start_x = x0 * 1000 + x1 * 100 + x2 * 10;
+	int start_y = y0 * 1000 + y1 * 100 + y2 * 10;
+	for (int i = 0; i < 10; i++)//using Sequential Search
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (index[start_y + i][start_x + j] == nullptr)
+				continue;
+			if (index[start_y + i][start_x + j]->defeat_type == (253 + (int)this->filter_variable))
+				result++;
+		}
+	}
+	return result;
+}
