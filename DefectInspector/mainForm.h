@@ -21,6 +21,8 @@ namespace DefectInspector {
     /// </summary>
     public ref class mainForm : public System::Windows::Forms::Form {
     private:
+        delegate void UpdateInterface(void);
+        delegate void UpdateLoading(bool displayLoader);
         delegate void UpdateImage(Bitmap^ uImage);
         delegate void UpdateText(String^ uText, int mode);
     public:
@@ -81,6 +83,8 @@ namespace DefectInspector {
     private: System::Windows::Forms::TextBox^ FilterBox;
 
     private: System::Windows::Forms::Button^ filter_button;
+    private: System::Windows::Forms::PictureBox^ pictLoading;
+
 
 
 
@@ -99,6 +103,7 @@ namespace DefectInspector {
             System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
             System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
             System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
+            System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(mainForm::typeid));
             this->imgROI = (gcnew System::Windows::Forms::PictureBox());
             this->imgMap = (gcnew System::Windows::Forms::PictureBox());
             this->btnConnectSql = (gcnew System::Windows::Forms::Button());
@@ -113,6 +118,7 @@ namespace DefectInspector {
             this->listFrames = (gcnew System::Windows::Forms::ListBox());
             this->tctrlImage = (gcnew System::Windows::Forms::TabControl());
             this->tpROI = (gcnew System::Windows::Forms::TabPage());
+            this->pictLoading = (gcnew System::Windows::Forms::PictureBox());
             this->tpStackImage = (gcnew System::Windows::Forms::TabPage());
             this->imgCompared = (gcnew System::Windows::Forms::PictureBox());
             this->Filter_comboBox = (gcnew System::Windows::Forms::ComboBox());
@@ -128,6 +134,7 @@ namespace DefectInspector {
             this->tpSelectedFrames->SuspendLayout();
             this->tctrlImage->SuspendLayout();
             this->tpROI->SuspendLayout();
+            (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictLoading))->BeginInit();
             this->tpStackImage->SuspendLayout();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgCompared))->BeginInit();
             this->SuspendLayout();
@@ -215,10 +222,10 @@ namespace DefectInspector {
             // tpInfo
             // 
             this->tpInfo->Controls->Add(this->lblInfo);
-            this->tpInfo->Location = System::Drawing::Point(4, 28);
+            this->tpInfo->Location = System::Drawing::Point(4, 37);
             this->tpInfo->Name = L"tpInfo";
             this->tpInfo->Padding = System::Windows::Forms::Padding(3);
-            this->tpInfo->Size = System::Drawing::Size(425, 458);
+            this->tpInfo->Size = System::Drawing::Size(425, 449);
             this->tpInfo->TabIndex = 0;
             this->tpInfo->Text = L"info";
             this->tpInfo->UseVisualStyleBackColor = true;
@@ -226,10 +233,10 @@ namespace DefectInspector {
             // tpSelectedDies
             // 
             this->tpSelectedDies->Controls->Add(this->listDieInfo);
-            this->tpSelectedDies->Location = System::Drawing::Point(4, 28);
+            this->tpSelectedDies->Location = System::Drawing::Point(4, 37);
             this->tpSelectedDies->Name = L"tpSelectedDies";
             this->tpSelectedDies->Padding = System::Windows::Forms::Padding(3);
-            this->tpSelectedDies->Size = System::Drawing::Size(425, 458);
+            this->tpSelectedDies->Size = System::Drawing::Size(425, 449);
             this->tpSelectedDies->TabIndex = 1;
             this->tpSelectedDies->Text = L"Selected Dies";
             this->tpSelectedDies->UseVisualStyleBackColor = true;
@@ -237,18 +244,18 @@ namespace DefectInspector {
             // listDieInfo
             // 
             this->listDieInfo->FormattingEnabled = true;
-            this->listDieInfo->ItemHeight = 19;
+            this->listDieInfo->ItemHeight = 28;
             this->listDieInfo->Location = System::Drawing::Point(21, 19);
             this->listDieInfo->Name = L"listDieInfo";
-            this->listDieInfo->Size = System::Drawing::Size(386, 384);
+            this->listDieInfo->Size = System::Drawing::Size(386, 368);
             this->listDieInfo->TabIndex = 0;
             // 
             // tpSelectedFrames
             // 
             this->tpSelectedFrames->Controls->Add(this->listFrames);
-            this->tpSelectedFrames->Location = System::Drawing::Point(4, 28);
+            this->tpSelectedFrames->Location = System::Drawing::Point(4, 37);
             this->tpSelectedFrames->Name = L"tpSelectedFrames";
-            this->tpSelectedFrames->Size = System::Drawing::Size(425, 458);
+            this->tpSelectedFrames->Size = System::Drawing::Size(425, 449);
             this->tpSelectedFrames->TabIndex = 2;
             this->tpSelectedFrames->Text = L"Selected Frames";
             this->tpSelectedFrames->UseVisualStyleBackColor = true;
@@ -256,10 +263,10 @@ namespace DefectInspector {
             // listFrames
             // 
             this->listFrames->FormattingEnabled = true;
-            this->listFrames->ItemHeight = 19;
+            this->listFrames->ItemHeight = 28;
             this->listFrames->Location = System::Drawing::Point(15, 15);
             this->listFrames->Name = L"listFrames";
-            this->listFrames->Size = System::Drawing::Size(393, 384);
+            this->listFrames->Size = System::Drawing::Size(393, 368);
             this->listFrames->TabIndex = 0;
             // 
             // tctrlImage
@@ -277,22 +284,34 @@ namespace DefectInspector {
             // 
             // tpROI
             // 
+            this->tpROI->Controls->Add(this->pictLoading);
             this->tpROI->Controls->Add(this->imgROI);
-            this->tpROI->Location = System::Drawing::Point(29, 4);
+            this->tpROI->Location = System::Drawing::Point(39, 4);
             this->tpROI->Name = L"tpROI";
             this->tpROI->Padding = System::Windows::Forms::Padding(3);
-            this->tpROI->Size = System::Drawing::Size(1027, 1016);
+            this->tpROI->Size = System::Drawing::Size(1017, 1016);
             this->tpROI->TabIndex = 0;
             this->tpROI->Text = L"ROI";
             this->tpROI->UseVisualStyleBackColor = true;
             // 
+            // pictLoading
+            // 
+            this->pictLoading->BackColor = System::Drawing::Color::Transparent;
+            this->pictLoading->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"pictLoading.Image")));
+            this->pictLoading->Location = System::Drawing::Point(365, 367);
+            this->pictLoading->Name = L"pictLoading";
+            this->pictLoading->Size = System::Drawing::Size(262, 237);
+            this->pictLoading->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
+            this->pictLoading->TabIndex = 1;
+            this->pictLoading->TabStop = false;
+            // 
             // tpStackImage
             // 
             this->tpStackImage->Controls->Add(this->imgCompared);
-            this->tpStackImage->Location = System::Drawing::Point(29, 4);
+            this->tpStackImage->Location = System::Drawing::Point(39, 4);
             this->tpStackImage->Name = L"tpStackImage";
             this->tpStackImage->Padding = System::Windows::Forms::Padding(3);
-            this->tpStackImage->Size = System::Drawing::Size(1027, 1016);
+            this->tpStackImage->Size = System::Drawing::Size(1017, 1016);
             this->tpStackImage->TabIndex = 1;
             this->tpStackImage->Text = L"stackImage";
             this->tpStackImage->UseVisualStyleBackColor = true;
@@ -316,7 +335,7 @@ namespace DefectInspector {
             this->Filter_comboBox->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"All Defeat", L"Normal Dies" });
             this->Filter_comboBox->Location = System::Drawing::Point(1090, 540);
             this->Filter_comboBox->Name = L"Filter_comboBox";
-            this->Filter_comboBox->Size = System::Drawing::Size(240, 27);
+            this->Filter_comboBox->Size = System::Drawing::Size(240, 36);
             this->Filter_comboBox->TabIndex = 8;
             this->Filter_comboBox->SelectedIndexChanged += gcnew System::EventHandler(this, &mainForm::Filter_comboBox_SelectedIndexChanged);
             // 
@@ -325,7 +344,7 @@ namespace DefectInspector {
             this->label1->AutoSize = true;
             this->label1->Location = System::Drawing::Point(1086, 511);
             this->label1->Name = L"label1";
-            this->label1->Size = System::Drawing::Size(108, 19);
+            this->label1->Size = System::Drawing::Size(155, 28);
             this->label1->TabIndex = 9;
             this->label1->Text = L"Filter Type";
             // 
@@ -333,7 +352,7 @@ namespace DefectInspector {
             // 
             this->FilterBox->Location = System::Drawing::Point(1200, 508);
             this->FilterBox->Name = L"FilterBox";
-            this->FilterBox->Size = System::Drawing::Size(129, 26);
+            this->FilterBox->Size = System::Drawing::Size(129, 36);
             this->FilterBox->TabIndex = 10;
             // 
             // filter_button
@@ -348,7 +367,7 @@ namespace DefectInspector {
             // 
             // mainForm
             // 
-            this->AutoScaleDimensions = System::Drawing::SizeF(9, 19);
+            this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
             this->BackColor = System::Drawing::SystemColors::ActiveCaption;
@@ -382,6 +401,7 @@ namespace DefectInspector {
             this->tpSelectedFrames->ResumeLayout(false);
             this->tctrlImage->ResumeLayout(false);
             this->tpROI->ResumeLayout(false);
+            (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictLoading))->EndInit();
             this->tpStackImage->ResumeLayout(false);
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgCompared))->EndInit();
             this->ResumeLayout(false);
@@ -403,11 +423,13 @@ namespace DefectInspector {
         System::Void mainForm_Click(System::Object^ sender, System::EventArgs^ e);
 
         System::Void connectToDb(System::Void);
+        System::Void updateToDb(System::Void);
 
         // for delegate use
         System::Void UpdateMapperBitmap(Bitmap^ uImage);
         System::Void UpdatePainterBitmap(Bitmap^ uImage);
         System::Void UpdateInfoText(String^ uText, int mode);
+        System::Void setLoading(bool displayLoader);
 
         // for drop & amplify
         System::Void Drop(int dir);
@@ -417,6 +439,10 @@ namespace DefectInspector {
         System::Void updateRealTimeInfo();
         System::Void updateInfoList();
         System::Void updatePlot();
+        System::Void UpdateUpdateDies();
+
+        //
+        
 };
     // namespace DefectInspector
 }

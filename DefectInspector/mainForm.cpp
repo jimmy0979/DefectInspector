@@ -25,24 +25,24 @@ typedef struct _updateDieInfo {
 // Global Variables Declartion
 
 // OpenCV MAT Image
-ROI* roi;
-Map* die_map;
-DataControlUnit* data_controller;
-vector<paint_unit> paint_buffer;
+static ROI* roi;
+static Map* die_map;
+static DataControlUnit* data_controller;
+static vector<paint_unit> paint_buffer;
 
 // 資料庫連線
 SqlCommunicator* sql = nullptr;
 
 // Map
-int yCurrent = 0, xCurrent = 0;
+static int yCurrent = 0, xCurrent = 0;
 
 // 更新晶粒
-queue<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
-string updateInfoLog;				// 更新歷史紀錄，可供回顧或反悔用 (TODO: 反悔功能)
+static queue<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
+static string updateInfoLog;				// 更新歷史紀錄，可供回顧或反悔用 (TODO: 反悔功能)
 
 // 疊圖
-vector<cv::Mat> comparedFrames;		// 儲存準備疊圖比較之 Frame 圖
-cv::Mat currentMat;					// 
+static vector<cv::Mat> comparedFrames;		// 儲存準備疊圖比較之 Frame 圖
+static cv::Mat currentMat;					// 
 //===============================
 
 //---------------------------------------------------------------------
@@ -65,9 +65,6 @@ System::Drawing::Bitmap^ MatToBitmap(cv::Mat img, bool isROI = false) {
 System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ e) {
 	// mainForm_load
 	try {
-		// 以 連線字串 連線至 資料庫 SQL Server //
-		// connect to database with its ConnectString
-		sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// 初始建構 各項元件內容，包括 ROI, MAP... //
 		// initial Painter, Mapper
@@ -81,6 +78,8 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		// 即時更新圖表 初始化
 		this->chartDies->Series->Clear();
 		this->chartDies->Series->Add("DefectType");
+		
+		this->pictLoading->Visible = false;
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -94,6 +93,7 @@ System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::Event
 	// 建立 新執行續 來執行 connectToDb, 以避免類當機的問題//
 	// use another thread to deal with connectToDb(),
 	//      or it will cause GUI react like "no response"
+
 	Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::connectToDb));
 	thr1->Start();
 
@@ -105,73 +105,100 @@ System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::Event
 
 System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs^ e) {
 	try {
-		// 將 updateDies 內的 更新資訊 上傳至 SQL Server, 進行實際更新
-
-		// TODO : make user know when UPDATE is done
-		
-		// TODO : 可選擇安全性, 選擇與資料庫
-		//			1. 同步更新：可確保資料一致性，畫面更改時，資料庫必定已經改好了
-		//			2. 非同步更新：資料不一定一致，畫面更改時，資料庫可能尚未更新。不過會確保資料最終一致
-		
-		// 更新命令 主要 由(Region, DieX, DieY) 來 確定更新點位置
-		// construct the command with 3 params : Region, DieX, DieY
-		int size = updateDies.size();
-		for (int i = 0; i<size; i++) {
-			updateDieInfo* info = updateDies.front();
-			updateDies.pop();
-			
-			// 建立資料庫連線 //
-			SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
-			
-			// 將更新資訊上傳至資料庫 //
-			// 建構 SQL 命令 (遵循 SQL 語法)
-			// 以 stringstream 建構 命令字串
-			stringstream ss;
-
-			ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
-			ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
-			ss << " AND [Region] = " << info->LOT_ID << " ;";
-
-			//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
-			//ss << " SET [DefectType] = 0";
-			//ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
-			//ss << " AND [Region] = " << info->LOT_ID << ";";
-
-			// 將 string 轉換為 wstring, 以供 SqlCommuncator 使用
-			// convert string -> wstring
-			string sqlCommand = ss.str();
-			wstring updateSqlCommand(sqlCommand.begin(), sqlCommand.end());
-
-			// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
-			// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
-			// send the UPDATE command to SqlCommunicator
-			SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
-			updateSql->close();
-
-			// 本地端資料更新 //
-			// 本地端 呼叫 DataController::update_data() 更新
-			// update local data_controller
-			int abs_diex = 1000 * ((info->LOT_ID - 1) % 10) + info->DieX;
-			int abs_diey = 1000 * ((info->LOT_ID - 1) / 10) + info->DieY;
-			data_controller->update_data(abs_diex, abs_diey);
-
-			// 更新 ROI 圖案
-			Drop(1);
-			Drop(0);
-
-			// 紀錄歷史更新資訊 //
-			// append on Log
-			updateInfoLog += sqlCommand;
-
-		}
-
-		// 更新完成, 將 UI元件 內容清空 
-		this->listDieInfo->Items->Clear();
+		Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::updateToDb));
+		thr1->Start();
 	}
 	catch (System::Exception^ e) {
 		// SQL 命令錯誤 //
 		// 即時資訊 顯示 錯誤訊息
 		lblInfo->Text += "\n------------------\n" + e->Message;
+	}
+}
+
+System::Void mainForm::updateToDb(System::Void){
+	// 將 updateDies 內的 更新資訊 上傳至 SQL Server, 進行實際更新
+
+	// TODO : make user know when UPDATE is done
+	if (this->InvokeRequired) {
+		UpdateLoading^ uiLoadingStart = gcnew UpdateLoading(this, &mainForm::setLoading);
+		Invoke(uiLoadingStart, true);
+	}
+	else {
+		setLoading(true);
+	}
+
+	// TODO : 可選擇安全性, 選擇與資料庫
+	//			1. 同步更新：可確保資料一致性，畫面更改時，資料庫必定已經改好了
+	//			2. 非同步更新：資料不一定一致，畫面更改時，資料庫可能尚未更新。不過會確保資料最終一致
+
+	// 更新命令 主要 由(Region, DieX, DieY) 來 確定更新點位置
+	// construct the command with 3 params : Region, DieX, DieY
+	int size = updateDies.size();
+	for (int i = 0; i < size; i++) {
+		updateDieInfo* info = updateDies.front();
+		updateDies.pop();
+
+		// 建立資料庫連線 //
+		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+
+		// 將更新資訊上傳至資料庫 //
+		// 建構 SQL 命令 (遵循 SQL 語法)
+		// 以 stringstream 建構 命令字串
+		stringstream ss;
+
+		ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
+		ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+		ss << " AND [Region] = " << info->LOT_ID << " ;";
+
+		//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
+		//ss << " SET [DefectType] = 0";
+		//ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+		//ss << " AND [Region] = " << info->LOT_ID << ";";
+
+		// 將 string 轉換為 wstring, 以供 SqlCommuncator 使用
+		// convert string -> wstring
+		string sqlCommand = ss.str();
+		wstring updateSqlCommand(sqlCommand.begin(), sqlCommand.end());
+
+		// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
+		// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
+		// send the UPDATE command to SqlCommunicator
+		SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
+		updateSql->close();
+
+		// 本地端資料更新 //
+		// 本地端 呼叫 DataController::update_data() 更新
+		// update local data_controller
+		int abs_diex = 1000 * ((info->LOT_ID - 1) % 10) + info->DieX;
+		int abs_diey = 1000 * ((info->LOT_ID - 1) / 10) + info->DieY;
+		data_controller->update_data(abs_diex, abs_diey);
+
+		// 更新 ROI 圖案
+		Drop(1);
+		Drop(0);
+
+		// 紀錄歷史更新資訊 //
+		// append on Log
+		updateInfoLog += sqlCommand;
+
+	}
+
+	if (this->InvokeRequired) {
+		// 更新完成, 將 UI元件 內容清空 
+		UpdateInterface^ uiInterface = gcnew UpdateInterface(this, &mainForm::UpdateUpdateDies);
+		Invoke(uiInterface);
+	}
+	else {
+		// 更新完成, 將 UI元件 內容清空 
+		this->listDieInfo->Items->Clear();
+	}
+
+	if (this->InvokeRequired) {
+		UpdateLoading^ uiLoadingStart = gcnew UpdateLoading(this, &mainForm::setLoading);
+		Invoke(uiLoadingStart, false);
+	}
+	else {
+		setLoading(false);
 	}
 }
 
@@ -464,11 +491,25 @@ System::Void mainForm::connectToDb(System::Void) {
 	// TODO : warp the statement here in <Class> SqlCommunicator
 	//                  to make it more simply to operate the database
 
+	if (this->InvokeRequired) {
+		UpdateLoading^ uiLoadingStart = gcnew UpdateLoading(this, &mainForm::setLoading);
+		Invoke(uiLoadingStart, true);
+	}
+	else {
+		setLoading(true);
+	}
+
+
 	// collects info. that needs to update to a element in ui
 	// will later call delegate to help display the info. on the element
 	String^ resInfo;
 
 	// 對資料庫 下 SELECT 命令，進行資料載入 //
+
+	// 以 連線字串 連線至 資料庫 SQL Server
+	// connect to database with its ConnectString
+	sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+	
 	// make a query and get the statmentHandle
 	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] = 1");
 	
@@ -547,17 +588,29 @@ System::Void mainForm::connectToDb(System::Void) {
 	    // lblInfo->Text = gcnew String(text.c_str());
 	    lblInfo->Text = resInfo;
 	}
+
+	if (this->InvokeRequired) {
+		UpdateLoading^ uiLoadingEnd = gcnew UpdateLoading(this, &mainForm::setLoading);
+		Invoke(uiLoadingEnd, false);
+	}
+	else {
+		setLoading(false);
+	}
 }
 
 //---------------------------------------------------------------------
 // 對應委派 函式宣告
 
+System::Void mainForm::UpdateUpdateDies(System::Void) {
+	this->listDieInfo->Items->Clear();
+}
+
 System::Void mainForm::UpdateMapperBitmap(Bitmap^ uImage) {
-	imgMap->Image = uImage;
+	this->imgMap->Image = uImage;
 }
 
 System::Void mainForm::UpdatePainterBitmap(Bitmap^ uImage) {
-	imgROI->Image = uImage;
+	this->imgROI->Image = uImage;
 }
 
 System::Void mainForm::UpdateInfoText(String^ uText, int mode) {
@@ -566,14 +619,32 @@ System::Void mainForm::UpdateInfoText(String^ uText, int mode) {
 
 	switch (mode) {
 	case 0:
-		lblInfo->Text = uText;
+		this->lblInfo->Text = uText;
 		break;
 	case 1:
-		lblInfo->Text += uText;
+		this->lblInfo->Text += uText;
 		break;
 	default:
-		lblInfo->Text = uText;
+		this->lblInfo->Text = uText;
 		break;
+	}
+}
+
+System::Void mainForm::setLoading(bool displayLoader) {
+	// displayLoader {0: 等待視窗關閉, 1:等待視窗開啟}
+	if (displayLoader)
+	{
+		// 等待視窗開啟 // 
+		this->pictLoading->Visible = true;
+		this->Cursor = System::Windows::Forms::Cursors::WaitCursor;
+		// this->Enabled = false;
+	}
+	else
+	{
+		// 等待視窗關閉 // 
+		this->pictLoading->Visible = false;
+		this->Enabled = true;
+		this->Cursor = System::Windows::Forms::Cursors::Default;
 	}
 }
 
@@ -650,5 +721,8 @@ System::Void mainForm::updatePlot() {
 		this->chartDies->Series["DefectType"]->Points->AddXY(i.first, i.second);
 	}
 }
+
+//---------------------------------------------------------------------
+
 
 //---------------------------------------------------------------------
