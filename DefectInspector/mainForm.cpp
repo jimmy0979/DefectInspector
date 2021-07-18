@@ -1,4 +1,5 @@
 #include "mainForm.h"
+#include "Rendering.h"
 
 #include <time.h>
 
@@ -78,8 +79,9 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		// 即時更新圖表 初始化
 		this->chartDies->Series->Clear();
 		this->chartDies->Series->Add("DefectType");
-		
+		// 載入圖，將 imgROI 設為 Parent 來使背景以 imgROI為基準透明
 		this->pictLoading->Visible = false;
+		this->pictLoading->Parent = this->imgROI;
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -638,6 +640,10 @@ System::Void mainForm::setLoading(bool displayLoader) {
 		this->pictLoading->Visible = true;
 		this->Cursor = System::Windows::Forms::Cursors::WaitCursor;
 		// this->Enabled = false;
+		
+		//if (this->imgROI->Image != nullptr) {
+		//	Rendering::BlendPictures(this->imgROI, this->pictLoading);
+		//}
 	}
 	else
 	{
