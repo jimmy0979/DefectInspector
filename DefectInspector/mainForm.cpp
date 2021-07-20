@@ -38,7 +38,7 @@ SqlCommunicator* sql = nullptr;
 static int yCurrent = 0, xCurrent = 0;
 
 // 更新晶粒
-static queue<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
+static vector<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
 static string updateInfoLog;				// 更新歷史紀錄，可供回顧或反悔用 (TODO: 反悔功能)
 
 // 疊圖
@@ -137,8 +137,7 @@ System::Void mainForm::updateToDb(System::Void){
 	// construct the command with 3 params : Region, DieX, DieY
 	int size = updateDies.size();
 	for (int i = 0; i < size; i++) {
-		updateDieInfo* info = updateDies.front();
-		updateDies.pop();
+		updateDieInfo* info = updateDies[i];
 
 		// 建立資料庫連線 //
 		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
@@ -184,7 +183,10 @@ System::Void mainForm::updateToDb(System::Void){
 		updateInfoLog += sqlCommand;
 
 	}
-
+	
+	// 更新完成，清空容器
+	updateDies.clear();
+	
 	if (this->InvokeRequired) {
 		// 更新完成, 將 UI元件 內容清空 
 		UpdateInterface^ uiInterface = gcnew UpdateInterface(this, &mainForm::UpdateUpdateDies);
@@ -301,12 +303,22 @@ System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows:
 		pair<int, int> DiePosition = data_controller->return_locat_xy(xPosition, yPosition);
 		int DieX = DiePosition.first, DieY = DiePosition.second;
 
+		// 確認資料沒有重複
+		// TODO : 以 更加的 資料結構 確認有無重複
+		for (int i = 0; i < updateDies.size(); i++) {
+			updateDieInfo* cur = updateDies[i];
+			if (cur->LOT_ID == LOT_ID && cur->DieX == DieX && cur->DieY == DieY) {
+				// 已經記錄過了，重複，直接 Early return
+				return ;
+			}
+		}
+
 		// 即時資訊 更新 //
 		lblInfo->Text += "\nLOT_ID" + LOT_ID + "\nDieX=" + DieX + "\nDieY=" + DieY + "\n";
 		this->listDieInfo->Items->Add("Region" + LOT_ID + ", DieX = " + DieX + ", DieY = " + DieY);
 		
 		// 將資料 存進 updateDies 容器內 //
-		updateDies.push(new updateDieInfo(LOT_ID, DieX, DieY));
+		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY));
 	}
 }
 
