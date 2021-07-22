@@ -189,19 +189,16 @@ bool DataControlUnit::change_level(const bool& enlarge)
 
 bool DataControlUnit::change_block(const int& direction)
 {
-	if (direction == 0)//left
-	{
-		if (level == 0)
-		{
+	switch (direction) {
+	case 0://left
+		switch (this->level){
+		case 0:
 			if (level_0_x == 0)
 				return false;
 			level_0_x--;
 			return true;
-		}
-		else if(level == 1)
-		{
-			if (level_1_x == 0)
-			{
+		case 1:
+			if (level_1_x == 0){
 				if (level_0_x == 0)
 					return false;
 				map_change = true;
@@ -211,17 +208,13 @@ bool DataControlUnit::change_block(const int& direction)
 			else
 				level_1_x--;
 			return true;
-		}
-		else if (level == 2)
-		{
-			if (level_2_x == 0)
-			{
+		case 2:
+			if (level_2_x == 0){
 				if (level_0_x == 0 && level_1_x == 0)
 					return false;
 				map_change = true;
 				level_2_x = 9;
-				if (level_1_x == 0)
-				{
+				if (level_1_x == 0){
 					level_1_x = 9;
 					level_0_x--;
 				}
@@ -230,25 +223,18 @@ bool DataControlUnit::change_block(const int& direction)
 				return true;
 			}
 			else
-			{
 				level_2_x--;
-				return true;
-			}
+			return true;
 		}
-	}
-	else if (direction == 1)//right
-	{
-		if (level == 0)
-		{
+	case 1://right
+		switch (this->level) {
+		case 0:
 			if (level_0_x == 9)
 				return false;
 			level_0_x++;
 			return true;
-		}
-		else if (level == 1)
-		{
-			if (level_1_x == 9)
-			{
+		case 1:
+			if (level_1_x == 9){
 				if (level_0_x == 9)
 					return false;
 				map_change = true;
@@ -258,17 +244,13 @@ bool DataControlUnit::change_block(const int& direction)
 			else
 				level_1_x++;
 			return true;
-		}
-		else if (level == 2)
-		{
-			if (level_2_x == 9)
-			{
+		case 2:
+			if (level_2_x == 9){
 				if (level_0_x == 9 && level_1_x == 9)
 					return false;
 				map_change = true;
 				level_2_x = 0;
-				if (level_1_x == 9)
-				{
+				if (level_1_x == 9){
 					level_1_x = 0;
 					level_0_x++;
 				}
@@ -277,25 +259,18 @@ bool DataControlUnit::change_block(const int& direction)
 				return true;
 			}
 			else
-			{
 				level_2_x++;
-				return true;
-			}
+			return true;
 		}
-	}
-	else if (direction == 2)//up
-	{
-		if (level == 0)
-		{
+	case 2://up
+		switch (this->level){
+		case 0:
 			if (level_0_y == 0)
 				return false;
 			level_0_y--;
 			return true;
-		}
-		else if (level == 1)
-		{
-			if (level_1_y == 0)
-			{
+		case 1:
+			if (level_1_y == 0){
 				if (level_0_y == 0)
 					return false;
 				map_change = true;
@@ -305,17 +280,13 @@ bool DataControlUnit::change_block(const int& direction)
 			else
 				level_1_y--;
 			return true;
-		}
-		else if (level == 2)
-		{
-			if (level_2_y == 0)
-			{
+		case 2:
+			if (level_2_y == 0){
 				if (level_0_y == 0 && level_1_y == 0)
 					return false;
 				map_change = true;
 				level_2_y = 9;
-				if (level_1_y == 0)
-				{
+				if (level_1_y == 0){
 					level_1_y = 9;
 					level_0_y--;
 				}
@@ -324,45 +295,34 @@ bool DataControlUnit::change_block(const int& direction)
 				return true;
 			}
 			else
-			{
 				level_2_y--;
-				return true;
-			}
+			return true;
 		}
-	}
-	else if (direction == 3)//down
-	{
-		if (level == 0)
-		{
+	case 3://down
+		switch (this->level){
+		case 0:
 			if (level_0_y == 9)
 				return false;
 			level_0_y++;
 			return true;
-		}
-		else if (level == 1)
-		{
-			if (level_1_y == 9)
-			{
+		case 1:
+			if (level_1_y == 9){
 				if (level_0_y == 9)
 					return false;
 				map_change = true;
 				level_1_y = 0;
 				level_0_y++;
-		}
-		else
-			level_1_y++;
-		return true;
-		}
-		else if (level == 2)
-		{
-			if (level_2_y == 9)
-			{
+			}
+			else 
+				level_1_y++;
+			return true;
+		case 2:
+			if (level_2_y == 9){
 				if (level_0_y == 9 && level_1_y == 9)
 					return false;
 				map_change = true;
 				level_2_y = 0;
-				if (level_1_y == 9)
-				{
+				if (level_1_y == 9){
 					level_1_y = 0;
 					level_0_y++;
 				}
@@ -371,10 +331,8 @@ bool DataControlUnit::change_block(const int& direction)
 				return true;
 			}
 			else
-			{
 				level_2_y++;
-				return true;
-			}
+			return true;
 		}
 	}
 	return false;
@@ -565,6 +523,14 @@ void DataControlUnit::insert_statistics(const int& x, const int& y, const data_u
 			itr->second.insert(x, y);//exist insert data directly
 		}
 	}
+}
+
+bool DataControlUnit::delete_statistics(const int& x, const int& y)/*¥¼¼g§¹*/
+{
+	if (this->index[y][x] != nullptr){
+
+	}
+	return false;
 }
 
 void DataControlUnit::Statistics_node::insert(const int& x, const int& y){
