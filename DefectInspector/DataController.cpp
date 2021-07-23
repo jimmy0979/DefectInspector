@@ -60,7 +60,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 	vector<paint_unit> output;
 	int start_x ,start_y; 
 	double percent;
-	int block_size;//ROIÀË¬d°Ï¶ôÃäªº¤j¤p or Map§t¦³ªº´¹²É­Ó¼Æ
+	int block_size;//ROIï¿½Ë¬dï¿½Ï¶ï¿½ï¿½äªºï¿½jï¿½p or Mapï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É­Ó¼ï¿½
 	if (for_roi)
 	{
 		switch (this->level) {
@@ -103,7 +103,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 			{
 				for (int j = 0;  j <  10; j++)
 				{
-					if(this->filter_variable == Data_type::AllDefeat)//¼È®É³o¼Ë¼g
+					if(this->filter_variable == Data_type::AllDefeat)//ï¿½È®É³oï¿½Ë¼g
 						percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
 					else
 						percent = 1 - (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
@@ -544,12 +544,16 @@ map<int, int> DataControlUnit::return_defect_count() {
 
 	// real-time infoList
 	stringstream ss;
+	ss << "====================\n";
 	ss << "Col 0 : " << this->level_0_x << ", Row 0 : " << this->level_0_y << endl;
 	ss << "Col 1 : " << this->level_1_x << ", Row 1 : " << this->level_1_y << endl;
 	ss << "Col 2 : " << this->level_2_x << ", Row 2 : " << this->level_2_y << endl;
 
 	for(pair<int, int> i: res)
-		ss << i.first << " -> " << i.second << "\n";
+		ss << "DefectType: " << i.first << ", has defectNum: " << i.second << "\n";
+	
+	ss << "Yield Rate : " << (double)defectCnt / tot << "%\n";
+	ss << "====================\n";
 	infoList = ss.str();
 
 	return res;
