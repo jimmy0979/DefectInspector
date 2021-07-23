@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <Windows.h>
 #include <windows.system.h>
 #include <opencv2/highgui.hpp>
@@ -10,15 +10,17 @@
 
 using namespace std;
 
+//列舉所有的篩選條件
 enum Data_type {
 	AllDefeat = 0, NormalDies
 };
 
+//繪圖的基本單元
 typedef struct Paint_Unit
 {
-	int paintx, painty;
-	cv::Scalar color;
-	Paint_Unit(int x, int y, cv::Scalar c) :paintx(x), painty(y), color(c) {}
+	int paintx, painty;//繪製的對應位置
+	cv::Scalar color;//繪製的顏色
+	Paint_Unit(int x, int y, cv::Scalar c) :paintx(x), painty(y), color(c) {}//Paint_Unit的建構子
 }paint_unit;
 
 class DataControlUnit
@@ -56,34 +58,45 @@ private:
 	// realTime infoList
 	string infoList = "";
 
-	//statistics 
-	typedef struct Statistics_node//the struct to store specific die type's quantity at different level
+	/*跟統計資料相關*/
+	typedef struct Statistics_node//儲存統計資料的結構。儲存等級0和1指定位置相對映類別的晶粒個數
 	{
-		int node_count_level_0[100] = { 0 };
-		int node_count_level_1[10000] = { 0 };
+		int node_count_level_0[100] = { 0 };//儲存對映等級0位置的陣列
+		int node_count_level_1[10000] = { 0 };//儲存對映等級1位置的陣列
 		Statistics_node() {}
-		Statistics_node(const int& x, const int& y) { node_count_level_0[(y / 1000) * 10 + (x / 1000)]++; node_count_level_1[(y / 100) * 100 + (x / 100)]++; }
-		void insert(const int& x, const int& y);//insert data. it will automatically plus 1 to corresponding location 
-		int search_statistics(const int& x, const int& y);//return the number of specific type at corresponding location at level 0
-		int search_statistics(const int& x0, const int& y0, const int& x1, const int& y1);//return the number of specific type at corresponding location at level 1
+		Statistics_node(const int& x, const int& y) { node_count_level_0[(y / 1000) * 10 + (x / 1000)]++; node_count_level_1[(y / 100) * 100 + (x / 100)]++; }//建構子並且增加相對映的位置個數
+		void insert(const int& x, const int& y);//插入資料，會自動增加相對映位置的個數
+		int search_statistics(const int& x, const int& y);//回傳等級0指定位置的對映晶粒類別個數
+		int search_statistics(const int& x0, const int& y0, const int& x1, const int& y1);////回傳等級1指定位置的對映晶粒類別個數
 	}statistics_node;
-	map<int, statistics_node> statistics_map;//the object managing our statistics_node. 
-	void insert_statistics(const int& x, const int& y, const data_unit* input_data);//insert new data in map
+	map<int, statistics_node> statistics_map;//使用STL的map管理
+	void insert_statistics(const int& x, const int& y, const data_unit* input_data);//插入資料進入map中
+	bool delete_statistics(const int& x, const int& y);//刪除絕對位置下的晶粒統計資料，並且回傳是否刪除成功 
 
 public:
-	const int return_level(void) { return level;}
+	
 	//System::String return_jpgname(const int&, const vector<__int64>&, const vector<string>&);//ignore
+
+	/*放入或更新陣列的資料*/
 	void put_data(const int&, const int&, const int&, const string&);//take data from sqlcommuncator into datacontroller(with bincode input)
 	void put_data(const int&, const int&, const int&);//(no bincode for test)
-	vector<paint_unit> pull_data(const bool&);
+
+	/*取得目前狀態下的繪圖資訊*/
+	vector<paint_unit> pull_data(const bool&);//true 取得ROI目前的繪圖資訊 false取得map目前的繪圖資訊
+
 	bool update_data(const int& , const int&);
-	bool change_level(const bool&);
-	bool change_block(const int&);
-	bool change_filter(const int&);//change the type of dies you can visible, if return false mean doesn't change type
-	const Data_type return_fliter_setting(void);
-	bool return_map_change(void);
-	const int return_locat_x(void);
-	const int return_locat_y(void);
+
+	/*變更狀態相關*/
+	bool change_level(const bool&);//變更縮放等級，並且回傳是否變更成功
+	bool change_block(const int&);//向指定方向位移一格。0向左 1向右 2向上 3向下。回傳是否位移成功
+	bool return_map_change(void);//位移一格後，是否map需要更新。ture需要 false不需要
+	bool change_filter(const int&);//變更篩選類別，並且回傳是否變更成功
+
+	/*回傳當前狀態資訊*/
+	const int return_level(void) { return level; }//回傳目前的縮放等級
+	const int return_locat_x(void);//回傳目前x軸的相對位置
+	const int return_locat_y(void);//回傳目前y軸的相對位置
+	const Data_type return_fliter_setting(void);//回傳目前篩選類別
 
 	int return_lotId(void);
 	pair<int, int> return_locat_xy(int, int);
@@ -91,21 +104,12 @@ public:
 	string currentInfoList(void);
 	map<int, int> return_defect_count(void);
 
+	/*取得指定區塊限定die type的統計資料*/
 	int get_statistics_data(const int& x, const int& y, const int& target);//return the number of specific type at corresponding location at level 0
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& target);//return the number of specific type at corresponding location at level 1
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& x2, const int& y2, const int& target);//return the number of specific type at corresponding location at level 2
 
-	void test(void)
-	{
-		for (int i = 0; i < 10; i++)
-		{
-			for (int j = 0; j < 10; j++)
-			{
-				cout << count_level_0[i * 10 + j] << '\n';
-			}
-		}
-	}
-
+	/*建構子，初始化陣列*/
 	DataControlUnit()
 	{
 		index = new data_unit ** [10000];
