@@ -9,7 +9,7 @@
 #include <sqltypes.h>
 
 #include <string>
-
+#include <sstream>
 using namespace std;
 
 #define SQL_RESULT_LEN 240
@@ -39,6 +39,8 @@ public:
 	// COMMUNICATION
 	// return the statementText of the sqlQueryStr
 	SQLHSTMT sqlCommand(const wchar_t* sqlQueryStr);
+	// 讀取指定的統計資料，在特定的範圍中(暫時寫好放著)
+	int get_statistics_data(const int& cur_level, int* locat_data, char* filter_code);
 	// setup the info of columns from HSTMT
 	void sqlBindCol(int column);
 	// close the connection to database

@@ -4,6 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <utility>
@@ -12,7 +13,7 @@ using namespace std;
 
 //列舉所有的篩選條件
 enum Data_type {
-	AllDefeat = 0, NormalDies
+	Alldefect = 0, NormalDies
 };
 
 //繪圖的基本單元
@@ -28,11 +29,10 @@ class DataControlUnit
 private:
 	typedef	struct Data_Unit
 	{
-		int diex, diey;
-		int defeat_type;
+		int defect_type = -1;//-1代表沒有defect
 		string bin_code;//5 digts
-		Data_Unit(const int& x,const int& y,const int& defeat) :diex(x), diey(y), defeat_type(defeat){}
-		Data_Unit(const int& x,const int& y,const int& defeat,const string& bin) :diex(x), diey(y),defeat_type(defeat),bin_code(bin){}
+		Data_Unit(const int& defect) : defect_type(defect){}
+		Data_Unit(const int& defect,const string& bin) :defect_type(defect),bin_code(bin){}
 	}data_unit;
 	data_unit*** index;
 	
@@ -40,7 +40,7 @@ private:
 	int level_0_x = 0, level_0_y = 0;
 	int level_1_x = 0, level_1_y = 0;
 	int level_2_x = 0, level_2_y = 0;
-	//the number of defeat at different level
+	//the number of defect at different level
 	int count_level_0[100] = {0};
 	int count_level_1[10000] = {0};
 	int count_level_2[1000000] = {0};
@@ -50,7 +50,7 @@ private:
 	//varible about setting
 	bool map_change = false;//indicate while map block's location changing if whole map needs changing  
 	int level = 0;//curr level
-	Data_type filter_variable = AllDefeat;//the variable decide show which type's die
+	Data_type filter_variable = Alldefect;//the variable decide show which type's die
 	//color function
 	cv::Scalar decide_color_roi(const data_unit*);//decide the color of piex at  ROI
 	cv::Scalar decide_color_map(const double&);//decide the color of piex at map
@@ -66,6 +66,7 @@ private:
 		Statistics_node() {}
 		Statistics_node(const int& x, const int& y) { node_count_level_0[(y / 1000) * 10 + (x / 1000)]++; node_count_level_1[(y / 100) * 100 + (x / 100)]++; }//建構子並且增加相對映的位置個數
 		void insert(const int& x, const int& y);//插入資料，會自動增加相對映位置的個數
+		bool minus(const int& x, const int& y);//使某key值指定位置統計數字減一，回傳布林值Ture代表減一成功
 		int search_statistics(const int& x, const int& y);//回傳等級0指定位置的對映晶粒類別個數
 		int search_statistics(const int& x0, const int& y0, const int& x1, const int& y1);////回傳等級1指定位置的對映晶粒類別個數
 	}statistics_node;
@@ -96,6 +97,7 @@ public:
 	const int return_level(void) { return level; }//回傳目前的縮放等級
 	const int return_locat_x(void);//回傳目前x軸的相對位置
 	const int return_locat_y(void);//回傳目前y軸的相對位置
+	int* return_all_locat(void);//回傳所有目前全部等級的位置資訊。回傳的為一個陣列，0~2為等級0~2的x軸位置，3~5為等級0~2的y軸位置
 	const Data_type return_fliter_setting(void);//回傳目前篩選類別
 
 	int return_lotId(void);
@@ -108,6 +110,7 @@ public:
 	int get_statistics_data(const int& x, const int& y, const int& target);//return the number of specific type at corresponding location at level 0
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& target);//return the number of specific type at corresponding location at level 1
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& x2, const int& y2, const int& target);//return the number of specific type at corresponding location at level 2
+	
 
 	/*建構子，初始化陣列*/
 	DataControlUnit()
@@ -119,3 +122,18 @@ public:
 		}
 	}
 };
+
+//filter code 篩選條件的編碼
+/*
+	一組filter code會由至少兩碼組成
+	第一碼為set bit
+	第二碼為type bit
+	規則如下
+	set bit = 0 篩選範圍為全部同種類的
+	        = 1 篩選的為特定一種種類
+	type bit = 0 篩選好的晶粒 if set bit = 0 , type bit = 0 篩選bin code
+	         = 1 篩選壞的晶粒                           = 1 篩選defect 
+	剩下的位碼
+	if set bit = 1 type bit = 1 則只需一位代表缺陷類型
+	bin code等之後再編碼
+*/

@@ -1,4 +1,5 @@
-#include "DataController.h"
+﻿#include "DataController.h"
+#define Data_type_offset 254 //用來位移篩選條件的值至defect type的值
 /*
 System::String DataControlUnit::return_jpgname(const int& level, const vector<__int64>& location, const vector<string>& filter)
 {
@@ -27,40 +28,42 @@ void DataControlUnit::create_floder()
 	}
 }
 
-void DataControlUnit::put_data(const int& x, const int& y,const int &defeat, const string& bincode)
+void DataControlUnit::put_data(const int& x, const int& y,const int &defect, const string& bincode)
 {
 	if (index[y][x] == nullptr)
 	{
-		index[y][x] = new data_unit(x, y, defeat, bincode);
+		index[y][x] = new data_unit(defect, bincode);
 	}
 	else
 	{
+		delete_statistics(x, y);//減少相對應的統計個數
 		index[y][x]->bin_code = bincode;
-		index[y][x]->defeat_type = defeat;
+		index[y][x]->defect_type = defect;
 	}
 }
-void DataControlUnit::put_data(const int& x, const int& y, const int& defeat)
+void DataControlUnit::put_data(const int& x, const int& y, const int& defect)
 {
 	if (index[y][x] == nullptr)
 	{
 		count_level_0[(y / 1000) * 10 + (x / 1000)]++;
 		count_level_1[(y / 100) * 100 + (x / 100)]++;
 		count_level_2[(y / 10) * 1000 + (x / 10)]++;
-
-		index[y][x] = new data_unit(x, y, defeat);
+		index[y][x] = new data_unit(defect);
+		this->insert_statistics(x, y, index[y][x]);
 	}
-	else
+	else//更新資料
 	{
-		index[y][x]->defeat_type = defeat;
+		delete_statistics(x, y);//減少相對應的統計個數
+		index[y][x]->defect_type = defect;
 	}
 }
 
 vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 {
 	vector<paint_unit> output;
-	int start_x ,start_y; 
+	int start_x = 0,start_y = 0; 
 	double percent;
-	int block_size;//ROI�ˬd�϶��䪺�j�p or Map�t�������ɭӼ�
+	int block_size = 0;//ROI檢查區塊邊的大小 or Map含有的晶粒個數
 	if (for_roi)
 	{
 		switch (this->level) {
@@ -82,7 +85,7 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 		for (int i = 0; i < block_size; i++){
 			for (int j = 0; j < block_size; j++){
 				switch (this->filter_variable) {
-				case Data_type::AllDefeat:
+				case Data_type::Alldefect:
 					if (index[start_y + i][start_x + j] != nullptr) {
 						output.push_back(paint_unit(j, i, decide_color_roi(index[start_y + i][start_x + j])));
 					}
@@ -97,45 +100,39 @@ vector<paint_unit> DataControlUnit::pull_data(const bool& for_roi)
 	}
 	else
 	{
-		if (level == 2)
-		{
-			for (int i = 0;  i <  10; i++)
-			{
-				for (int j = 0;  j <  10; j++)
-				{
-					if(this->filter_variable == Data_type::AllDefeat)//�Ȯɳo�˼g
-						percent = (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
-					else
-						percent = 1 - (double)(count_level_2[level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10 + i * 1000 + j]) / 100;
-					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
-				}
-			}
+		int trans_locat = 0;//轉換過的起始位置
+		int locat_offset = 0;//每個low之間的位移量
+		int* curr_count_array = nullptr;
+		switch (this->level) {
+		case 2:
+			trans_locat = level_0_y * 100000 + level_0_x * 100 + level_1_y * 10000 + level_1_x * 10;
+			curr_count_array = count_level_2;
+			block_size = 100;
+			locat_offset = 1000;
+			break;
+		case 1:
+			trans_locat = level_0_y * 1000 + level_0_x * 10;
+			curr_count_array = count_level_1;
+			block_size = 10000;
+			locat_offset = 100;
+			break;
+		case 0:
+			trans_locat = 0;
+			curr_count_array = count_level_0;
+			block_size = 1000000;
+			locat_offset = 10;
 		}
-		else if (level == 1)
-		{
-			for (int i = 0;  i <  10; i++)
-			{
-				for (int j = 0;  j <  10; j++)
-				{
-					if(this->filter_variable == Data_type::AllDefeat)
-						percent = (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
-					else
-						percent = 1- (double)(count_level_1[level_0_y * 1000 + level_0_x * 10 + i * 100 + j]) / 10000;
-					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
-				}
-			}
-		}
-		else
-		{
-			for (int i = 0; i < 10; i++)
-			{
-				for (int j = 0; j < 10; j++)
-				{
-					if (this->filter_variable == Data_type::AllDefeat)
-						percent = (double)(count_level_0[i * 10 + j]) / 1000000;
-					else
-						percent = 1 - (double)(count_level_0[i * 10 + j]) / 1000000;
-					output.push_back(paint_unit(j, i, DataControlUnit::decide_color_map(percent)));
+		if (curr_count_array != nullptr) {//避免取到nullptr
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 10; j++) {
+					switch (this->filter_variable) {
+					case Data_type::Alldefect:
+						percent = (double)(curr_count_array[trans_locat + i * locat_offset + j]) / block_size;
+						break;
+					case Data_type::NormalDies:
+						percent = 1 - (double)(curr_count_array[trans_locat + i * locat_offset + j]) / block_size;
+					}
+					output.push_back(paint_unit(j, i, this->decide_color_map(percent)));
 				}
 			}
 		}
@@ -151,6 +148,7 @@ bool DataControlUnit::update_data(const int& x, const int& y) {
 	count_level_1[(y / 100) * 100 + (x / 100)]--;
 	count_level_2[(y / 10) * 1000 + (x / 10)]--;
 
+	this->delete_statistics(x, y);
 	free(index[y][x]);
 	index[y][x] = nullptr;
 
@@ -390,12 +388,23 @@ const int DataControlUnit::return_locat_y(void)
 		return level_2_y;
 	}
 }
+int* DataControlUnit::return_all_locat(void)
+{
+	int* data_array = new int[6];
+	data_array[0] = this->level_0_x;
+	data_array[1] = this->level_1_x;
+	data_array[2] = this->level_2_x;
+	data_array[3] = this->level_0_y;
+	data_array[4] = this->level_1_y;
+	data_array[5] = this->level_2_y;
+	return data_array;
+}
 //color function
 cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 {
 	switch (DataControlUnit::filter_variable)//the condition to decide which color show, show one color once
 	{
-	case Data_type::AllDefeat:
+	case Data_type::Alldefect:
 		return cv::Scalar(0, 0, 255);
 	case Data_type::NormalDies:
 		return cv::Scalar(0, 255, 0);
@@ -403,9 +412,9 @@ cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 }
 cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 {
-	switch (DataControlUnit::filter_variable)//check exist defeat or not
+	switch (DataControlUnit::filter_variable)//check exist defect or not
 	{
-	case Data_type::AllDefeat:
+	case Data_type::Alldefect:
 		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
 		{
 			return cv::Scalar(0, 0, 255);
@@ -513,11 +522,11 @@ map<int, int> DataControlUnit::return_defect_count() {
 	return res;
 }
 
-void DataControlUnit::insert_statistics(const int& x, const int& y, const data_unit* input_data){
-	if (input_data->defeat_type != 0){//check whether exist defeat
-		map<int, statistics_node>::iterator itr = statistics_map.find(input_data->defeat_type);
+void DataControlUnit::insert_statistics(const int& x, const int& y, const data_unit* input_data) {/*未寫完差bincode*/
+	if (input_data->defect_type != -1){//check whether exist defect
+		map<int, statistics_node>::iterator itr = statistics_map.find(input_data->defect_type);
 		if (itr == statistics_map.end()) {//chek whether key exist 
-			statistics_map[input_data->defeat_type] = statistics_node(x, y);//doesn't exist , add new node and insert data
+			statistics_map[input_data->defect_type] = statistics_node(x, y);//doesn't exist , add new node and insert data
 		}
 		else{
 			itr->second.insert(x, y);//exist insert data directly
@@ -525,10 +534,24 @@ void DataControlUnit::insert_statistics(const int& x, const int& y, const data_u
 	}
 }
 
-bool DataControlUnit::delete_statistics(const int& x, const int& y)/*���g��*/
-{
-	if (this->index[y][x] != nullptr){
-
+bool DataControlUnit::delete_statistics(const int& x, const int& y) {/*未寫完差bincode*/
+	if (this->index[y][x] != nullptr)
+	{
+		//確認是否有defect
+		if (this->index[y][x]->defect_type != -1) {
+			map<int, statistics_node>::iterator itr = statistics_map.find(index[y][x]->defect_type);//在map找到對映的value的iterator
+			try {
+				if(itr == statistics_map.end())
+					throw gcnew System::Exception(gcnew System::String("The data in array isn't equal to map existing key, program is something wrong"));//陣列有此類別，map中沒有，數據不同步
+				if(!itr->second.minus(x,y))
+					throw gcnew System::Exception(gcnew System::String("The defect type exist at least one but map didn't count correctly, program is something wrong"));//陣列有此類別的晶粒，map裡的統計資料錯誤
+			}
+			catch (System::Exception^ e) {
+				throw gcnew System::Exception(e->Message);//跳出錯誤代碼
+			}
+			this->index[y][x]->defect_type = -1;//將defect type重新初始化
+			return true;
+		}
 	}
 	return false;
 }
@@ -536,6 +559,17 @@ bool DataControlUnit::delete_statistics(const int& x, const int& y)/*���g��*/
 void DataControlUnit::Statistics_node::insert(const int& x, const int& y){
 	node_count_level_0[(y / 1000) * 10 + (x / 1000)]++;
 	node_count_level_1[(y / 100) * 100 + (x / 100)]++;
+}
+
+bool DataControlUnit::Statistics_node::minus(const int& x, const int& y)
+{
+	//檢查是否此區域之前是否真的有東西
+	if (node_count_level_1[(y/100)*100+(x/100)]>0) {
+		node_count_level_0[(y / 1000) * 10 + (x / 1000)]--;
+		node_count_level_1[(y / 100) * 100 + (x / 100)]--;
+		return true;
+	}
+	return false;//減少不存在的東西，減少失敗
 }
 
 int DataControlUnit::Statistics_node::search_statistics(const int& x, const int& y){
@@ -577,7 +611,7 @@ int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int
 		{
 			if (index[start_y + i][start_x + j] == nullptr)
 				continue;
-			if (index[start_y + i][start_x + j]->defeat_type == (253 + (int)this->filter_variable))
+			if (index[start_y + i][start_x + j]->defect_type == (253 + (int)this->filter_variable))
 				result++;
 		}
 	}

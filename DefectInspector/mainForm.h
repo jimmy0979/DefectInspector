@@ -332,7 +332,7 @@ namespace DefectInspector {
             this->Filter_comboBox->AutoCompleteSource = System::Windows::Forms::AutoCompleteSource::ListItems;
             this->Filter_comboBox->Cursor = System::Windows::Forms::Cursors::Default;
             this->Filter_comboBox->FormattingEnabled = true;
-            this->Filter_comboBox->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"All Defeat", L"Normal Dies" });
+            this->Filter_comboBox->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"All defect", L"Normal Dies" });
             this->Filter_comboBox->Location = System::Drawing::Point(1090, 540);
             this->Filter_comboBox->Name = L"Filter_comboBox";
             this->Filter_comboBox->Size = System::Drawing::Size(240, 36);

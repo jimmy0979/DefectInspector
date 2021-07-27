@@ -1,4 +1,4 @@
-// SqlCommunicator.cpp
+﻿// SqlCommunicator.cpp
 
 #include <iostream>
 #include <windows.h>
@@ -92,6 +92,78 @@ SQLHSTMT SqlCommunicator::sqlCommand(const wchar_t* sqlQueryStr) {
 	}
 	catch (System::Exception^ e) {
 		throw gcnew System::Exception("SqlCommunicator.sqlQuery : " + e->Message);
+	}
+}
+
+int SqlCommunicator::get_statistics_data(const int& cur_level, int* locat_data, char* filter_code)
+{
+	stringstream ss;//儲存轉譯後的容器
+	int start_x, end_x, start_y, end_y;
+	try {
+		if (locat_data != nullptr) {
+			switch (cur_level) {
+			case 0:
+				start_x = locat_data[0] * 1000 - 1;
+				start_y = locat_data[3] * 1000 - 1;
+				end_x = (locat_data[0] + 1) * 1000 + 1;
+				end_y = (locat_data[3] + 1) * 1000 + 1;
+				break;
+			case 1:
+				start_x = locat_data[0] * 1000 + locat_data[1] * 100 - 1;
+				start_y = locat_data[3] * 1000 + locat_data[4] * 100 - 1;
+				end_x = locat_data[0] * 1000 + (locat_data[1] + 1) * 100 + 1;
+				end_y = locat_data[3] * 1000 + (locat_data[4] + 1) * 100 + 1;
+				break;
+			case 2:
+				start_x = locat_data[0] * 1000 + locat_data[1] * 100 + locat_data[2] * 10 - 1;
+				start_y = locat_data[3] * 1000 + locat_data[4] * 100 + locat_data[5] * 10 - 1;
+				end_x = locat_data[0] * 1000 + locat_data[1] * 100 + (locat_data[2] + 1) * 10 + 1;
+				end_y = locat_data[3] * 1000 + locat_data[4] * 100 + (locat_data[5] + 1) * 10 + 1;
+			}
+		}
+		else
+			throw gcnew System::Exception(gcnew System::String("location data array lose"));
+	}
+	catch (System::Exception^ e) {
+		throw gcnew System::Exception("Warning : " + e->Message);
+		return 0;
+	}
+	switch (filter_code[0]) {
+	case 0://全部的normal die
+		break;
+	case 1://全部的defect die
+		ss << "SELECT COUNT (*) FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [DieX] > " << start_x << "And [DieX] < " << end_x << "And [DieY] > " << start_y << "And [DieY] < " << end_y;//這之後有bin code時要改
+		break;
+	case 2:
+		break;
+	case 3:
+		break;
+	}
+	// 將 string 轉換為 wstring, 以供 SqlCommuncator 使用
+	// convert string -> wstring
+	string sqlCommand = ss.str();
+	// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
+	// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
+	// send the search command to SqlCommunicator
+	wstring searchSqlCommand(sqlCommand.begin(), sqlCommand.end());
+	SQLHSTMT hstmt = this->sqlCommand(searchSqlCommand.c_str());
+	// 依 SELECT 命令 放入變數空間
+	SQLBIGINT Total;
+	SQLLEN cbTotal;
+	// seperate each column from HSTMT
+	SQLBindCol(hstmt, 1, SQL_C_SBIGINT, &Total, 0, &cbTotal);
+	// 獲得命令回傳
+	// the return state of ODBC command
+	SQLRETURN retCode = SQLFetch(hstmt);
+	try {
+		if (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO)
+			return Total;
+		else
+			throw gcnew System::Exception(gcnew System::String("SQL featching fail"));
+	}
+	catch (System::Exception^ e){
+		throw gcnew System::Exception("Warning : " + e->Message);
+		return 0;
 	}
 }
 

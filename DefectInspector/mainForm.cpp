@@ -75,7 +75,7 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 
 		// 初始化 各項元件內容 //
 		// 篩選內容 初始化
-		this->Filter_comboBox->SelectedIndex = 0;//initial show data type is "AllDefeat"
+		this->Filter_comboBox->SelectedIndex = 0;//initial show data type is "Alldefect"
 		// 即時更新圖表 初始化
 		this->chartDies->Series->Clear();
 		this->chartDies->Series->Add("DefectType");
