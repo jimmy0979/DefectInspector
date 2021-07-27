@@ -511,12 +511,16 @@ map<int, int> DataControlUnit::return_defect_count() {
 
 	// real-time infoList
 	stringstream ss;
+	ss << "====================\n";
 	ss << "Col 0 : " << this->level_0_x << ", Row 0 : " << this->level_0_y << endl;
 	ss << "Col 1 : " << this->level_1_x << ", Row 1 : " << this->level_1_y << endl;
 	ss << "Col 2 : " << this->level_2_x << ", Row 2 : " << this->level_2_y << endl;
 
 	for(pair<int, int> i: res)
-		ss << i.first << " -> " << i.second << "\n";
+		ss << "DefectType: " << i.first << ", has defectNum: " << i.second << "\n";
+	
+	ss << "Yield Rate : " << (double)defectCnt / tot << "%\n";
+	ss << "====================\n";
 	infoList = ss.str();
 
 	return res;

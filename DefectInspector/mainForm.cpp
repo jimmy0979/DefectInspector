@@ -525,7 +525,7 @@ System::Void mainForm::connectToDb(System::Void) {
 	sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 	
 	// make a query and get the statmentHandle
-	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] = 1");
+	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] <= 100");
 	
 	// 依 SELECT 命令 放入變數空間
 	SQLBIGINT region, diex, diey;
