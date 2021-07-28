@@ -25,6 +25,9 @@ typedef struct _updateDieInfo {
 //===============================
 // Global Variables Declartion
 
+// UI 狀態
+bool isWaiting = false;
+
 // OpenCV MAT Image
 static ROI* roi;
 static Map* die_map;
@@ -72,6 +75,8 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		roi = new ROI();
 		die_map = new Map();
 		data_controller = new DataControlUnit;
+
+		isWaiting = false;
 
 		// 初始化 各項元件內容 //
 		// 篩選內容 初始化
@@ -121,6 +126,7 @@ System::Void mainForm::updateToDb(System::Void){
 	// 將 updateDies 內的 更新資訊 上傳至 SQL Server, 進行實際更新
 
 	// TODO : make user know when UPDATE is done
+	isWaiting = true;
 	if (this->InvokeRequired) {
 		UpdateLoading^ uiLoadingStart = gcnew UpdateLoading(this, &mainForm::setLoading);
 		Invoke(uiLoadingStart, true);
@@ -204,11 +210,15 @@ System::Void mainForm::updateToDb(System::Void){
 	else {
 		setLoading(false);
 	}
+	isWaiting = false;
 }
 
 System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
 	// trigger function
 	// whenever selected region on Mapper changing, Painter should refresh to correspond die info.
+
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
 
 	// TRANSFER : TODO : amplify function
 	// only consider drop & moving
@@ -264,7 +274,7 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		int Region = data_controller->return_lotId();
 		int Level = data_controller->return_level();
 		this->listFrames->Items->Add("Region" + Region + ", FrameX = " + xPosition + ", FrameY = " + yPosition + ", Level = " + Level);
-
+		this->tctrlInfo->SelectedIndex = 2;
 	}
 }
 
@@ -272,6 +282,10 @@ System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows:
 	
 	// 右邊點擊 晶粒點 以進行後續更新
 	// 更新晶粒 會 先儲存在 updateDies 容器內
+
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
+
 	// Right Click on imgROI to select dies that need to update
 	if (e->Button == System::Windows::Forms::MouseButtons::Right) {
 
@@ -316,6 +330,7 @@ System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows:
 		// 即時資訊 更新 //
 		lblInfo->Text += "\nLOT_ID" + LOT_ID + "\nDieX=" + DieX + "\nDieY=" + DieY + "\n";
 		this->listDieInfo->Items->Add("Region" + LOT_ID + ", DieX = " + DieX + ", DieY = " + DieY);
+		this->tctrlInfo->SelectedIndex = 1;
 		
 		// 將資料 存進 updateDies 容器內 //
 		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY));
@@ -326,6 +341,9 @@ System::Void mainForm::mainForm_KeyDown(System::Object^ sender, System::Windows:
 	// 鍵盤觸發函式 //
 	// trigger function
 	// whenever selected region on Mapper changing, Painter should refresh to correspond die infor.
+
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
 
 	// TODO : a section to check whether info are loaded to prevent null section
 
@@ -400,6 +418,10 @@ System::Void mainForm::mainForm_FormClosing(System::Object^ sender, System::Wind
 }
 
 System::Void mainForm::tabControl1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+	
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
+	
 	// 得知當前所處之 tabPage Index
 	int selectedIndex = this->tctrlImage->SelectedIndex;
 
@@ -467,6 +489,9 @@ System::Void mainForm::tabControl1_SelectedIndexChanged(System::Object^ sender, 
 
 System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 {
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
+
 	if (data_controller != nullptr)//check data_controller has been initial
 	{
 		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
@@ -482,6 +507,9 @@ System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(Sys
 
 System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ sender, System::EventArgs^ e)
 {
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
+
 	if (data_controller != nullptr)//check data_controller has been initial
 	{
 		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
@@ -504,7 +532,7 @@ System::Void mainForm::mainForm_Click(System::Object^ sender, System::EventArgs^
 System::Void mainForm::connectToDb(System::Void) {
 	// TODO : warp the statement here in <Class> SqlCommunicator
 	//                  to make it more simply to operate the database
-
+	isWaiting = true;
 	if (this->InvokeRequired) {
 		UpdateLoading^ uiLoadingStart = gcnew UpdateLoading(this, &mainForm::setLoading);
 		Invoke(uiLoadingStart, true);
@@ -610,6 +638,7 @@ System::Void mainForm::connectToDb(System::Void) {
 	else {
 		setLoading(false);
 	}
+	isWaiting = false;
 }
 
 //---------------------------------------------------------------------
