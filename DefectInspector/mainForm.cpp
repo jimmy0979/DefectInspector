@@ -96,6 +96,8 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 //---------------------------------------------------------------------
 
 System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::EventArgs^ e) {
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
 
 	// 建立 新執行續 來執行 connectToDb, 以避免類當機的問題//
 	// use another thread to deal with connectToDb(),
@@ -111,6 +113,9 @@ System::Void mainForm::btnConnectSql_Click(System::Object^ sender, System::Event
 }
 
 System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs^ e) {
+	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
+	if (isWaiting)	return;
+
 	try {
 		Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::updateToDb));
 		thr1->Start();
