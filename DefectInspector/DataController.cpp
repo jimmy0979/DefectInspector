@@ -49,12 +49,22 @@ void DataControlUnit::put_data(const int& x, const int& y, const int& defect)
 		count_level_1[(y / 100) * 100 + (x / 100)]++;
 		count_level_2[(y / 10) * 1000 + (x / 10)]++;
 		index[y][x] = new data_unit(defect);
-		this->insert_statistics(x, y, index[y][x]);
+		if (index[y][x]->operator==(this->register_data) && ((y/100)*100+(x/100)) == ((this->last_locate_y/100)*100+(this->last_locate_x/100))){//檢查種類是否相同和區域是否相同
+			this->counts++;
+		}
+		else {
+			this->insert_statistics(this->last_locate_x, this->last_locate_y, &this->register_data, this->counts);
+			this->last_locate_x = x;
+			this->last_locate_y = y;
+			this->register_data = *index[y][x];
+			this->counts = 1;
+		}
 	}
 	else//更新資料
 	{
 		delete_statistics(x, y);//減少相對應的統計個數
 		index[y][x]->defect_type = defect;
+		this->insert_statistics(x, y, index[y][x]);
 	}
 }
 
@@ -540,6 +550,16 @@ void DataControlUnit::insert_statistics(const int& x, const int& y, const data_u
 
 }
 
+void DataControlUnit::insert_done_reset()
+{
+	if (this->counts != 0) {
+		this->insert_statistics(this->last_locate_x, this->last_locate_y, &this->register_data, this->counts);//insert data
+		this->last_locate_x = this->last_locate_y = -1;//reset variable for next wafer insert
+		this->counts = 0;
+		this->register_data = data_unit(-1);
+	}
+}
+
 bool DataControlUnit::delete_statistics(const int& x, const int& y) {/*未寫完差bincode*/
 	if (this->index[y][x] != nullptr)
 	{
@@ -630,4 +650,17 @@ int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int
 		}
 	}
 	return result;
+}
+
+bool DataControlUnit::Data_Unit::operator==(const Data_Unit& comp) const
+{
+	if (this->defect_type != -1)
+		return this->defect_type == comp.defect_type;
+	return false;
+}
+
+void DataControlUnit::Data_Unit::operator=(const Data_Unit& b)
+{
+	this->defect_type = b.defect_type;
+	this->bin_code = b.bin_code;
 }

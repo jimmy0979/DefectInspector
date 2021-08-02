@@ -549,6 +549,7 @@ System::Void mainForm::connectToDb(System::Void) {
 		}
 		else {
 			// 資料提取結束，結束迴圈
+			data_controller->insert_done_reset();
 			break;
 		}
 	}

@@ -33,6 +33,8 @@ private:
 		string bin_code;//5 digts
 		Data_Unit(const int& defect) : defect_type(defect){}
 		Data_Unit(const int& defect,const string& bin) :defect_type(defect),bin_code(bin){}
+		bool operator== (const struct Data_Unit& comp) const;//差bincode比對
+		void operator=(const struct Data_Unit& b);
 	}data_unit;
 	data_unit*** index;
 	
@@ -76,6 +78,10 @@ private:
 	void insert_statistics(const int& x, const int& y, const data_unit* input_data);//插入資料進入map中
 	void insert_statistics(const int& x, const int& y, const data_unit* input_data, const int& num);//插入資料進入map中，並指定插入個數
 	bool delete_statistics(const int& x, const int& y);//刪除絕對位置下的晶粒統計資料，並且回傳是否刪除成功 
+	//跟統計的插入優化有關
+	int last_locate_x = -1, last_locate_y = -1;
+	int counts = 0;
+	data_unit register_data = data_unit(-1);
 
 public:
 	
@@ -84,6 +90,7 @@ public:
 	/*放入或更新陣列的資料*/
 	void put_data(const int&, const int&, const int&, const string&);//take data from sqlcommuncator into datacontroller(with bincode input)
 	void put_data(const int&, const int&, const int&);//(no bincode for test)
+	void insert_done_reset();//插入資料結束，重置相關的變數
 
 	/*取得目前狀態下的繪圖資訊*/
 	vector<paint_unit> pull_data(const bool&);//true 取得ROI目前的繪圖資訊 false取得map目前的繪圖資訊
