@@ -471,8 +471,6 @@ System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(Sys
 	{
 		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
 		{
-			die_map->change_background(data_controller->return_fliter_setting());
-			roi->change_background(data_controller->return_fliter_setting());
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
 		}
@@ -486,8 +484,6 @@ System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ send
 	{
 		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
 		{
-			die_map->change_background(data_controller->return_fliter_setting());
-			roi->change_background(data_controller->return_fliter_setting());
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
 		}

@@ -65,13 +65,16 @@ private:
 		int node_count_level_1[10000] = { 0 };//儲存對映等級1位置的陣列
 		Statistics_node() {}
 		Statistics_node(const int& x, const int& y) { node_count_level_0[(y / 1000) * 10 + (x / 1000)]++; node_count_level_1[(y / 100) * 100 + (x / 100)]++; }//建構子並且增加相對映的位置個數
+		Statistics_node(const int& x, const int& y, const int& num) { node_count_level_0[(y / 1000) * 10 + (x / 1000)] += num; node_count_level_1[(y / 100) * 100 + (x / 100)] += num;}//建構子並且增加相對映的位置個數，並且個數可以自由決定
 		void insert(const int& x, const int& y);//插入資料，會自動增加相對映位置的個數
+		void insert(const int& x, const int& y, const int& num);//插入資料，會自動增加相對映位置的個數，並且個數可以自由決定
 		bool minus(const int& x, const int& y);//使某key值指定位置統計數字減一，回傳布林值Ture代表減一成功
 		int search_statistics(const int& x, const int& y);//回傳等級0指定位置的對映晶粒類別個數
 		int search_statistics(const int& x0, const int& y0, const int& x1, const int& y1);////回傳等級1指定位置的對映晶粒類別個數
 	}statistics_node;
 	map<int, statistics_node> statistics_map;//使用STL的map管理
 	void insert_statistics(const int& x, const int& y, const data_unit* input_data);//插入資料進入map中
+	void insert_statistics(const int& x, const int& y, const data_unit* input_data, const int& num);//插入資料進入map中，並指定插入個數
 	bool delete_statistics(const int& x, const int& y);//刪除絕對位置下的晶粒統計資料，並且回傳是否刪除成功 
 
 public:

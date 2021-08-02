@@ -412,58 +412,42 @@ cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 }
 cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 {
+	int v1, v2;//三個顏色的數值
+	if (percent > 0.49) {//the value of percent more large means this type data ocuppy more area
+		//Light 50%
+		v1 = 0;
+		v2 = 255;
+	}
+	else if (percent > 0.25){
+		//65%
+		v1 = 77;
+		v2 = 255;
+	}
+	else if (percent > 0.125){
+		//75%
+		v1 = 128;
+		v2 = 204;
+	}
+	else if (percent > 0.0625){
+		//85%
+		v1 = 179;
+		v2 = 185;
+	}
+	else if (percent > 0.03125){
+		//95%
+		v1 = 230;
+		v2 = 159;
+	}
+	else{
+		//100%
+		v1 = v2 = 255;
+	}
 	switch (DataControlUnit::filter_variable)//check exist defect or not
 	{
 	case Data_type::Alldefect:
-		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
-		{
-			return cv::Scalar(0, 0, 255);
-		}
-		else if (percent > 0.25)//level 5
-		{
-			return cv::Scalar(80, 80, 255);
-		}
-		else if (percent > 0.125)//level 4
-		{
-			return cv::Scalar(102, 102, 255);
-		}
-		else if (percent > 0.0625)//level 3
-		{
-			return cv::Scalar(204, 204, 255);
-		}
-		else if (percent > 0.03125)//level 2
-		{
-			return cv::Scalar(204, 255, 255);
-		}
-		else//level 1
-		{
-			return cv::Scalar(0, 255, 0);
-		}
+		return cv::Scalar(v1, v1, v2);
 	case Data_type::NormalDies:
-		if (percent > 0.49)//level 6 level the value of percent more large means this type data ocuppy more area
-		{
-			return cv::Scalar(0, 153, 0);
-		}
-		else if (percent > 0.25)//level 5
-		{
-			return cv::Scalar(0, 204, 0);
-		}
-		else if (percent > 0.125)//level 4
-		{
-			return cv::Scalar(0, 255, 0);
-		}
-		else if (percent > 0.0625)//level 3
-		{
-			return cv::Scalar(128, 255, 128);
-		}
-		else if (percent > 0.03125)//level 2
-		{
-			return cv::Scalar(179, 255, 179);
-		}
-		else//level 1
-		{
-			return cv::Scalar(255, 255, 255);
-		}
+		return cv::Scalar(v1, v2, v1);
 	}
 }
 
@@ -532,10 +516,28 @@ void DataControlUnit::insert_statistics(const int& x, const int& y, const data_u
 		if (itr == statistics_map.end()) {//chek whether key exist 
 			statistics_map[input_data->defect_type] = statistics_node(x, y);//doesn't exist , add new node and insert data
 		}
-		else{
+		else {
 			itr->second.insert(x, y);//exist insert data directly
 		}
 	}
+}
+
+void DataControlUnit::insert_statistics(const int& x, const int& y, const data_unit* input_data, const int& num)
+{
+	if (num < 1)
+		return;
+	else {
+		if (input_data->defect_type != -1) {//check whether exist defect
+			map<int, statistics_node>::iterator itr = statistics_map.find(input_data->defect_type);
+			if (itr == statistics_map.end()) {//chek whether key exist 
+				statistics_map[input_data->defect_type] = statistics_node(x, y, num);//doesn't exist , add new node and insert data
+			}
+			else {
+				itr->second.insert(x, y, num);//exist insert data directly
+			}
+		}
+	}
+
 }
 
 bool DataControlUnit::delete_statistics(const int& x, const int& y) {/*未寫完差bincode*/
@@ -563,6 +565,14 @@ bool DataControlUnit::delete_statistics(const int& x, const int& y) {/*未寫完
 void DataControlUnit::Statistics_node::insert(const int& x, const int& y){
 	node_count_level_0[(y / 1000) * 10 + (x / 1000)]++;
 	node_count_level_1[(y / 100) * 100 + (x / 100)]++;
+}
+
+void DataControlUnit::Statistics_node::insert(const int& x, const int& y, const int& num)
+{
+	if (num < 1)
+		return;
+	node_count_level_0[(y / 1000) * 10 + (x / 1000)] += num;
+	node_count_level_1[(y / 100) * 100 + (x / 100)] += num;
 }
 
 bool DataControlUnit::Statistics_node::minus(const int& x, const int& y)
