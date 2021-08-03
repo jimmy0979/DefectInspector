@@ -201,6 +201,8 @@ namespace DefectInspector {
 			this->Controls->Add(this->label1);
 			this->Controls->Add(this->label2);
 			this->Controls->Add(this->legend);
+			this->MaximumSize = System::Drawing::Size(300, 300);
+			this->MinimumSize = System::Drawing::Size(300, 300);
 			this->Name = L"legendForm";
 			this->Text = L"legendForm";
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgLegend))->EndInit();

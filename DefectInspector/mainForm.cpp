@@ -503,10 +503,12 @@ System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(Sys
 		{
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
-			if (legend_form->Visible) {
-				cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
-				legend_form->show_legend(legend);//加載圖例
-				delete legend;//釋放記憶體
+			if (legend_form != nullptr) {
+				if (legend_form->Visible) {
+					cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
+					legend_form->show_legend(legend);//加載圖例
+					delete legend;//釋放記憶體
+				}
 			}
 		}
 	}
@@ -528,6 +530,10 @@ System::Void DefectInspector::mainForm::legend_button_Click(System::Object^ send
 	}
 	else
 	{
+		if (legend_form->Visible) {
+			legend_form->Focus();
+			return;
+		}
 		delete legend_form;
 		cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
 		legend_form = gcnew legendForm();
