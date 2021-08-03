@@ -503,25 +503,38 @@ System::Void DefectInspector::mainForm::Filter_comboBox_SelectedIndexChanged(Sys
 		{
 			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
+			if (legend_form->Visible) {
+				cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
+				legend_form->show_legend(legend);//加載圖例
+				delete legend;//釋放記憶體
+			}
 		}
 	}
 	FilterBox->Text = Filter_comboBox->Text;//show what type filter is now
 }
 
-System::Void DefectInspector::mainForm::filter_button_Click(System::Object^ sender, System::EventArgs^ e)
+System::Void DefectInspector::mainForm::legend_button_Click(System::Object^ sender, System::EventArgs^ e)
 {
 	// 若程式處於 Waiting State, 任何UI皆 應不可接收反應
 	if (isWaiting)	return;
 
-	if (data_controller != nullptr)//check data_controller has been initial
-	{
-		if (data_controller->change_filter(this->Filter_comboBox->SelectedIndex))//if type didn't change do nothing
-		{
-			imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
-			imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
-		}
+	//legendForm^ new_form = gcnew legendForm();//建立物件
+	if (legend_form == nullptr) {
+		cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
+		legend_form = gcnew legendForm();
+		legend_form->Show();//顯示視窗
+		legend_form->show_legend(legend);//加載圖例
+		delete legend;//釋放記憶體
 	}
-	FilterBox->Text = Filter_comboBox->Text;//show what type filter is now
+	else
+	{
+		delete legend_form;
+		cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
+		legend_form = gcnew legendForm();
+		legend_form->Show();//顯示視窗
+		legend_form->show_legend(legend);//加載圖例
+		delete legend;//釋放記憶體
+	}
 }
 
 System::Void mainForm::mainForm_Click(System::Object^ sender, System::EventArgs^ e) {

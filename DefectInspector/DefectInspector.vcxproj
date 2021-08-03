@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DataController.cpp" />
+    <ClCompile Include="legendForm.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainForm.cpp" />
     <ClCompile Include="Map.cpp" />
@@ -142,6 +143,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataController.h" />
+    <ClInclude Include="legendForm.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="mainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -151,6 +155,9 @@
     <ClInclude Include="SqlCommunicator.h" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="legendForm.resx">
+      <DependentUpon>legendForm.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="mainForm.resx">
       <DependentUpon>mainForm.h</DependentUpon>
     </EmbeddedResource>

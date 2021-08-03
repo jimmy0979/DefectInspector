@@ -6,6 +6,7 @@
 #include "ROI.h"
 #include "DataController.h"
 #include "SqlCommunicator.h"
+#include "legendForm.h"
 
 namespace DefectInspector {
 
@@ -26,6 +27,7 @@ namespace DefectInspector {
         delegate void UpdateImage(Bitmap^ uImage);
         delegate void UpdateText(String^ uText, int mode);
     public:
+        legendForm ^legend_form = nullptr;
         mainForm(void) {
             InitializeComponent();
             //
@@ -82,8 +84,9 @@ namespace DefectInspector {
     private: System::Windows::Forms::Label^ label1;
     private: System::Windows::Forms::TextBox^ FilterBox;
 
-    private: System::Windows::Forms::Button^ filter_button;
+
     private: System::Windows::Forms::PictureBox^ pictLoading;
+    private: System::Windows::Forms::Button^ legend_button;
 
 
 
@@ -124,7 +127,7 @@ namespace DefectInspector {
             this->Filter_comboBox = (gcnew System::Windows::Forms::ComboBox());
             this->label1 = (gcnew System::Windows::Forms::Label());
             this->FilterBox = (gcnew System::Windows::Forms::TextBox());
-            this->filter_button = (gcnew System::Windows::Forms::Button());
+            this->legend_button = (gcnew System::Windows::Forms::Button());
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgROI))->BeginInit();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->imgMap))->BeginInit();
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chartDies))->BeginInit();
@@ -222,10 +225,10 @@ namespace DefectInspector {
             // tpInfo
             // 
             this->tpInfo->Controls->Add(this->lblInfo);
-            this->tpInfo->Location = System::Drawing::Point(4, 37);
+            this->tpInfo->Location = System::Drawing::Point(4, 28);
             this->tpInfo->Name = L"tpInfo";
             this->tpInfo->Padding = System::Windows::Forms::Padding(3);
-            this->tpInfo->Size = System::Drawing::Size(425, 449);
+            this->tpInfo->Size = System::Drawing::Size(425, 458);
             this->tpInfo->TabIndex = 0;
             this->tpInfo->Text = L"info";
             this->tpInfo->UseVisualStyleBackColor = true;
@@ -233,10 +236,10 @@ namespace DefectInspector {
             // tpSelectedDies
             // 
             this->tpSelectedDies->Controls->Add(this->listDieInfo);
-            this->tpSelectedDies->Location = System::Drawing::Point(4, 37);
+            this->tpSelectedDies->Location = System::Drawing::Point(4, 28);
             this->tpSelectedDies->Name = L"tpSelectedDies";
             this->tpSelectedDies->Padding = System::Windows::Forms::Padding(3);
-            this->tpSelectedDies->Size = System::Drawing::Size(425, 449);
+            this->tpSelectedDies->Size = System::Drawing::Size(425, 458);
             this->tpSelectedDies->TabIndex = 1;
             this->tpSelectedDies->Text = L"Selected Dies";
             this->tpSelectedDies->UseVisualStyleBackColor = true;
@@ -244,18 +247,18 @@ namespace DefectInspector {
             // listDieInfo
             // 
             this->listDieInfo->FormattingEnabled = true;
-            this->listDieInfo->ItemHeight = 28;
+            this->listDieInfo->ItemHeight = 19;
             this->listDieInfo->Location = System::Drawing::Point(21, 19);
             this->listDieInfo->Name = L"listDieInfo";
-            this->listDieInfo->Size = System::Drawing::Size(386, 368);
+            this->listDieInfo->Size = System::Drawing::Size(386, 365);
             this->listDieInfo->TabIndex = 0;
             // 
             // tpSelectedFrames
             // 
             this->tpSelectedFrames->Controls->Add(this->listFrames);
-            this->tpSelectedFrames->Location = System::Drawing::Point(4, 37);
+            this->tpSelectedFrames->Location = System::Drawing::Point(4, 28);
             this->tpSelectedFrames->Name = L"tpSelectedFrames";
-            this->tpSelectedFrames->Size = System::Drawing::Size(425, 449);
+            this->tpSelectedFrames->Size = System::Drawing::Size(425, 458);
             this->tpSelectedFrames->TabIndex = 2;
             this->tpSelectedFrames->Text = L"Selected Frames";
             this->tpSelectedFrames->UseVisualStyleBackColor = true;
@@ -263,10 +266,10 @@ namespace DefectInspector {
             // listFrames
             // 
             this->listFrames->FormattingEnabled = true;
-            this->listFrames->ItemHeight = 28;
+            this->listFrames->ItemHeight = 19;
             this->listFrames->Location = System::Drawing::Point(15, 15);
             this->listFrames->Name = L"listFrames";
-            this->listFrames->Size = System::Drawing::Size(393, 368);
+            this->listFrames->Size = System::Drawing::Size(393, 365);
             this->listFrames->TabIndex = 0;
             // 
             // tctrlImage
@@ -286,10 +289,10 @@ namespace DefectInspector {
             // 
             this->tpROI->Controls->Add(this->pictLoading);
             this->tpROI->Controls->Add(this->imgROI);
-            this->tpROI->Location = System::Drawing::Point(39, 4);
+            this->tpROI->Location = System::Drawing::Point(29, 4);
             this->tpROI->Name = L"tpROI";
             this->tpROI->Padding = System::Windows::Forms::Padding(3);
-            this->tpROI->Size = System::Drawing::Size(1017, 1016);
+            this->tpROI->Size = System::Drawing::Size(1027, 1016);
             this->tpROI->TabIndex = 0;
             this->tpROI->Text = L"ROI";
             this->tpROI->UseVisualStyleBackColor = true;
@@ -308,10 +311,10 @@ namespace DefectInspector {
             // tpStackImage
             // 
             this->tpStackImage->Controls->Add(this->imgCompared);
-            this->tpStackImage->Location = System::Drawing::Point(39, 4);
+            this->tpStackImage->Location = System::Drawing::Point(29, 4);
             this->tpStackImage->Name = L"tpStackImage";
             this->tpStackImage->Padding = System::Windows::Forms::Padding(3);
-            this->tpStackImage->Size = System::Drawing::Size(1017, 1016);
+            this->tpStackImage->Size = System::Drawing::Size(1027, 1016);
             this->tpStackImage->TabIndex = 1;
             this->tpStackImage->Text = L"stackImage";
             this->tpStackImage->UseVisualStyleBackColor = true;
@@ -335,7 +338,7 @@ namespace DefectInspector {
             this->Filter_comboBox->Items->AddRange(gcnew cli::array< System::Object^  >(2) { L"All defect", L"Normal Dies" });
             this->Filter_comboBox->Location = System::Drawing::Point(1090, 540);
             this->Filter_comboBox->Name = L"Filter_comboBox";
-            this->Filter_comboBox->Size = System::Drawing::Size(240, 36);
+            this->Filter_comboBox->Size = System::Drawing::Size(240, 27);
             this->Filter_comboBox->TabIndex = 8;
             this->Filter_comboBox->SelectedIndexChanged += gcnew System::EventHandler(this, &mainForm::Filter_comboBox_SelectedIndexChanged);
             // 
@@ -344,7 +347,7 @@ namespace DefectInspector {
             this->label1->AutoSize = true;
             this->label1->Location = System::Drawing::Point(1086, 511);
             this->label1->Name = L"label1";
-            this->label1->Size = System::Drawing::Size(155, 28);
+            this->label1->Size = System::Drawing::Size(108, 19);
             this->label1->TabIndex = 9;
             this->label1->Text = L"Filter Type";
             // 
@@ -352,27 +355,27 @@ namespace DefectInspector {
             // 
             this->FilterBox->Location = System::Drawing::Point(1200, 508);
             this->FilterBox->Name = L"FilterBox";
-            this->FilterBox->Size = System::Drawing::Size(129, 36);
+            this->FilterBox->Size = System::Drawing::Size(129, 26);
             this->FilterBox->TabIndex = 10;
             // 
-            // filter_button
+            // legend_button
             // 
-            this->filter_button->Location = System::Drawing::Point(1090, 574);
-            this->filter_button->Name = L"filter_button";
-            this->filter_button->Size = System::Drawing::Size(75, 23);
-            this->filter_button->TabIndex = 11;
-            this->filter_button->Text = L"Enter";
-            this->filter_button->UseVisualStyleBackColor = true;
-            this->filter_button->Click += gcnew System::EventHandler(this, &mainForm::filter_button_Click);
+            this->legend_button->Location = System::Drawing::Point(1090, 574);
+            this->legend_button->Name = L"legend_button";
+            this->legend_button->Size = System::Drawing::Size(133, 34);
+            this->legend_button->TabIndex = 11;
+            this->legend_button->Text = L"Legend";
+            this->legend_button->UseVisualStyleBackColor = true;
+            this->legend_button->Click += gcnew System::EventHandler(this, &mainForm::legend_button_Click);
             // 
             // mainForm
             // 
-            this->AutoScaleDimensions = System::Drawing::SizeF(13, 28);
+            this->AutoScaleDimensions = System::Drawing::SizeF(9, 19);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
             this->BackColor = System::Drawing::SystemColors::ActiveCaption;
             this->ClientSize = System::Drawing::Size(1820, 1024);
-            this->Controls->Add(this->filter_button);
+            this->Controls->Add(this->legend_button);
             this->Controls->Add(this->FilterBox);
             this->Controls->Add(this->label1);
             this->Controls->Add(this->Filter_comboBox);
@@ -419,7 +422,7 @@ namespace DefectInspector {
         System::Void mainForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e);
         System::Void tabControl1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
         System::Void Filter_comboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
-        System::Void filter_button_Click(System::Object^ sender, System::EventArgs^ e);
+        System::Void legend_button_Click(System::Object^ sender, System::EventArgs^ e);
         System::Void mainForm_Click(System::Object^ sender, System::EventArgs^ e);
 
         System::Void connectToDb(System::Void);

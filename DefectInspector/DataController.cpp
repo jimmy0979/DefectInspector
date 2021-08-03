@@ -428,22 +428,22 @@ cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 		v1 = 0;
 		v2 = 255;
 	}
-	else if (percent > 0.25){
+	else if (percent > 0.24){
 		//65%
 		v1 = 77;
 		v2 = 255;
 	}
-	else if (percent > 0.125){
+	else if (percent > 0.124){
 		//75%
 		v1 = 128;
 		v2 = 204;
 	}
-	else if (percent > 0.0625){
+	else if (percent > 0.0624){
 		//85%
 		v1 = 179;
 		v2 = 185;
 	}
-	else if (percent > 0.03125){
+	else if (percent > 0.03124){
 		//95%
 		v1 = 230;
 		v2 = 159;
@@ -650,6 +650,39 @@ int DataControlUnit::get_statistics_data(const int& x0, const int& y0, const int
 		}
 	}
 	return result;
+}
+
+cv::Mat* DataControlUnit::lengend_paint(void)
+{
+	int v1,i = 0;
+	cv::Mat* legend = new cv::Mat(cv::Size(100,180), CV_8UC3, cv::Scalar(255, 255, 255));
+	while (i < 5){
+		switch (i) {
+		case 0:
+			v1 = 0;
+			break;
+		case 1:
+			v1 = 77;
+			break;
+		case 2:
+			v1 = 128;
+			break;
+		case 3:
+			v1 = 179;
+			break;
+		case 4:
+			v1 = 230;
+		}
+		switch (this->filter_variable) {
+		case Data_type::Alldefect:
+			cv::rectangle(*legend, cv::Rect(0, 30 * i, 100, 30), cv::Scalar(v1, v1, 255), -1);
+			break;
+		case Data_type::NormalDies:
+			cv::rectangle(*legend, cv::Rect(0, 30 * i, 100, 30), cv::Scalar(v1, 255, v1), -1);
+		}
+		i++;
+	}
+	return legend;
 }
 
 bool DataControlUnit::Data_Unit::operator==(const Data_Unit& comp) const

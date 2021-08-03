@@ -121,6 +121,8 @@ public:
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& target);//return the number of specific type at corresponding location at level 1
 	int get_statistics_data(const int& x0, const int& y0, const int& x1, const int& y1, const int& x2, const int& y2, const int& target);//return the number of specific type at corresponding location at level 2
 	
+	/*繪製圖例*/
+	cv::Mat* lengend_paint(void);
 
 	/*建構子，初始化陣列*/
 	DataControlUnit()

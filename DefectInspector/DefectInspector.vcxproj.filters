@@ -36,6 +36,9 @@
     <ClCompile Include="Rendering.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="legendForm.cpp">
+      <Filter>標頭檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainForm.h">
@@ -54,6 +57,9 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="Rendering.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="legendForm.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
