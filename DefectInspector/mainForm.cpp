@@ -521,14 +521,14 @@ System::Void DefectInspector::mainForm::legend_button_Click(System::Object^ send
 	if (isWaiting)	return;
 
 	//legendForm^ new_form = gcnew legendForm();//建立物件
-	if (legend_form == nullptr) {
+	if (legend_form == nullptr) {//未開啟過視窗
 		cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
 		legend_form = gcnew legendForm();
-		legend_form->Show();//顯示視窗
 		legend_form->show_legend(legend);//加載圖例
 		delete legend;//釋放記憶體
+		legend_form->Show();//顯示視窗
 	}
-	else
+	else//開啟過視窗
 	{
 		if (legend_form->Visible) {
 			legend_form->Focus();
@@ -537,9 +537,9 @@ System::Void DefectInspector::mainForm::legend_button_Click(System::Object^ send
 		delete legend_form;
 		cv::Mat* legend = data_controller->lengend_paint();//取得圖例的地址
 		legend_form = gcnew legendForm();
-		legend_form->Show();//顯示視窗
 		legend_form->show_legend(legend);//加載圖例
 		delete legend;//釋放記憶體
+		legend_form->Show();//顯示視窗
 	}
 }
 
