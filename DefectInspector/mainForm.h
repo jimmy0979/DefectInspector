@@ -428,6 +428,9 @@ namespace DefectInspector {
         System::Void connectToDb(System::Void);
         System::Void updateToDb(System::Void);
 
+        // for mutex lock
+        System::Object^ obj;
+
         // for delegate use
         System::Void UpdateMapperBitmap(Bitmap^ uImage);
         System::Void UpdatePainterBitmap(Bitmap^ uImage);

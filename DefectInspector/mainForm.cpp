@@ -9,11 +9,16 @@
 #include <vector>
 #include <queue>
 
+#include <fstream>
+
+#include <thread>
+
 #include <opencv2\imgproc\types_c.h>
 
 using namespace DefectInspector;
 using namespace System::Windows::Forms::DataVisualization::Charting;
 using namespace System::Threading;
+using namespace System::IO;
 
 typedef struct _updateDieInfo {
 	// 更新晶粒資料
@@ -43,6 +48,8 @@ static int yCurrent = 0, xCurrent = 0;
 // 更新晶粒
 static vector<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
 static string updateInfoLog;				// 更新歷史紀錄，可供回顧或反悔用 (TODO: 反悔功能)
+
+// 更新資料點
 
 // 疊圖
 static vector<cv::Mat> comparedFrames;		// 儲存準備疊圖比較之 Frame 圖
@@ -87,6 +94,9 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		// 載入圖，將 imgROI 設為 Parent 來使背景以 imgROI為基準透明
 		this->pictLoading->Visible = false;
 		this->pictLoading->Parent = this->imgROI;
+
+		// for mutex lock
+		obj = gcnew System::Object();
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -117,6 +127,17 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 	if (isWaiting)	return;
 
 	try {
+		// 將更新資訊寫入 log.csv檔案內
+		// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
+		String^ fileName = "log.csv";
+		StreamWriter^ sw = gcnew StreamWriter(fileName, false, System::Text::Encoding::UTF8);
+		for (int i = 0; i < updateDies.size(); i++) {
+			updateDieInfo* info = updateDies[i];
+			sw->WriteLine("UPDATE," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		}
+		sw->Close();
+
+		// 另外開執行續執行
 		Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::updateToDb));
 		thr1->Start();
 	}
@@ -178,6 +199,22 @@ System::Void mainForm::updateToDb(System::Void){
 		SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
 		updateSql->close();
 
+		
+		Monitor::Enter(obj);
+		try
+		{
+			// 將更新資訊寫入 log.csv檔案內
+			// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
+			String^ fileName = "log.csv";
+			StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
+			sw->WriteLine("DONE," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+			sw->Close();
+		}
+		finally
+		{
+			Monitor::Exit(obj);
+		}
+
 		// 本地端資料更新 //
 		// 本地端 呼叫 DataController::update_data() 更新
 		// update local data_controller
@@ -192,7 +229,6 @@ System::Void mainForm::updateToDb(System::Void){
 		// 紀錄歷史更新資訊 //
 		// append on Log
 		updateInfoLog += sqlCommand;
-
 	}
 	
 	// 更新完成，清空容器
@@ -573,7 +609,7 @@ System::Void mainForm::connectToDb(System::Void) {
 	sql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 	
 	// make a query and get the statmentHandle
-	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] <= 100");
+	SQLHSTMT hstmt = sql->sqlCommand(L"SELECT [Region], [DieX], [DieY] FROM [test].[dbo].[2274_DefectData_TEST_PartALL] WHERE [Region] <= 10");
 	
 	// 依 SELECT 命令 放入變數空間
 	SQLBIGINT region, diex, diey;
