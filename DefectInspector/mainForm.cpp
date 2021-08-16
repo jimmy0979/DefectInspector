@@ -37,24 +37,13 @@ typedef struct _updateDieInfo {
 	_updateDieInfo(int LOT_ID, int DieX, int DieY, int index) :LOT_ID(LOT_ID), DieX(DieX), DieY(DieY), index(index) {}
 } updateDieInfo;
 
-//void updateInBackground(const wchar_t* command) {
-//	// 建立資料庫連線 //
-//	SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
-//
-//	// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
-//	// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
-//	// send the UPDATE command to SqlCommunicator
-//	SQLHSTMT hstmt = updateSql->sqlCommand(command);
-//	updateSql->close();
-//}
-
 ref class backgroundWorker {
 private:
 	static Object^ obj = gcnew Object();
 	static int txnIndex = 0;
 
 	const wchar_t* connectStr;
-	const wchar_t* command;
+	// const wchar_t* command;
 	int index;
 	int DieX, DieY, LOT_ID;
 public:
@@ -67,14 +56,26 @@ public:
 		this->DieX = DieX;
 		this->DieY = DieY;
 		this->LOT_ID = LOT_ID;
+	}
+
+	void setConnectStr(const wchar_t* connectStr) { this->connectStr = connectStr; }
+	int get_Id() { return this->index; }
+	int get_LotId() { return this->LOT_ID; }
+	int get_DieX() { return this->DieX; }
+	int get_DieY() { return this->DieY; }
+
+	void running() {
+
+		// 建立資料庫連線 //
+		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// 建構 SQL 命令 (遵循 SQL 語法)
 		// 以 stringstream 建構 命令字串
 		stringstream ss;
 
 		ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
-		ss << " WHERE [DieX] = " << DieX << " AND [DieY] = " << DieY;
-		ss << " AND [Region] = " << LOT_ID << " ;";
+		ss << " WHERE [DieX] = " << this->DieX << " AND [DieY] = " << this->DieY;
+		ss << " AND [Region] = " << this->LOT_ID << " ;";
 
 		//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
 		//ss << " SET [DefectType] = 0";
@@ -86,25 +87,16 @@ public:
 		string sqlCommand = ss.str();
 		wstring updateSqlCommand(sqlCommand.begin(), sqlCommand.end());
 
-		command = updateSqlCommand.c_str();
-	}
-
-	void setConnectStr(const wchar_t* connectStr) { this->connectStr = connectStr; }
-	int get_Id() { return this->index; }
-	int get_LotId() { return this->LOT_ID; }
-	int get_DieX() { return this->DieX; }
-	int get_DieY() { return this->DieY; }
-
-	void running() {
-		// 建立資料庫連線 //
-		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+		// command = updateSqlCommand.c_str();
 
 		// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
 		// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
 		// send the UPDATE command to SqlCommunicator
-		SQLHSTMT hstmt = updateSql->sqlCommand(command);
+		// Console::WriteLine(command);
+		SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
 		updateSql->close();
 
+		// 撰寫進檔案時，以 Mutex鎖 鎖住IO資源，避免 Race Condition
 		Monitor::Enter(obj);
 		try
 		{
@@ -178,7 +170,7 @@ vector<string> csvSplit(string csvLog) {
 	int curStartIndex = 0;
 	for (int i = 0; i<n; i++) {
 		if (csvLog[i] == ',') {
-			columns.push_back(csvLog.substr(curStartIndex, i - curStartIndex + 1));
+			columns.push_back(csvLog.substr(curStartIndex, i - curStartIndex));
 			curStartIndex = i+1;
 		}
 	}
@@ -191,6 +183,9 @@ vector<string> csvSplit(string csvLog) {
 }
 
 vector<updateDieInfo*> checkLog() {
+	// 讀取 Log 檔案，並回傳需要更新的資料點 資訊
+
+	// 讀取檔案，將其記錄在 content 內
 	vector<string> content;
 	String^ fileName = "log.csv";
 	try
@@ -204,6 +199,8 @@ vector<updateDieInfo*> checkLog() {
 			string dest = chars;
 			content.push_back(dest);
 		}
+
+		din->Close();
 	}
 	catch (Exception^ e)
 	{
@@ -216,24 +213,32 @@ vector<updateDieInfo*> checkLog() {
 	int n = content.size();
 	set<int> txnsDone;
 	vector<updateDieInfo*> lastwill;
-	for (int line = n - 1; line >= 0; line--) {
-		//const char* chars = (const char*)(System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(content[line])).ToPointer();
-		//string dest = chars;
 
-		// cli::array<String^>^ split = content[line]->Split(':');
+	// 將檔案內容由後至前 開始一一讀取
+	for (int line = n - 1; line >= 0; line--) {
+		// 反序列化 檔案內容
 		vector<string> split = csvSplit(content[line]);
-		string txnCode = split[0];
-		int txnIndex = stoi(split[1]);
+		string txnCode = split[0];		// 第1格 為 交易類型(RECOVER, UPDATE, DONE...)等等
+		int txnIndex = stoi(split[1]);	// 第2格 為 交易代碼，每筆交易皆有其唯一代碼，用於追蹤
+
 		if (txnCode == "DONE") {
+			// 若交易類型為 DONE，代表此交易已經成功更新至資料庫
+			// 將其記錄在 txnsDone
 			txnsDone.insert(txnIndex);
 		}
 		else if (txnCode == "UPDATE" || txnCode == "RECOVER") {
+			// 若交易類型為 RECOVER 或 UPDATE，代表交易接受，但還未知此交易是否成功更新至資料庫
 			// if txnIndex don't exist in txnDone, it means that this txns broke. 
 			if (txnsDone.find(txnIndex) == txnsDone.end()) {
+				// 但若 txnsDone 內並未出現 對應交易代碼，代表交易失敗
+				// 則進行重新更新
+
 				// 更新晶粒資料
 				int DieX = stoi(split[2]), DieY = stoi(split[3]);
 				int LOT_ID = stoi(split[4]);
-				lastwill.push_back(new updateDieInfo(DieX, DieY, LOT_ID, txnIndex));
+				lastwill.push_back(new updateDieInfo(LOT_ID, DieX, DieY, txnIndex));
+
+				System::Console::WriteLine(txnIndex);
 			}
 		}
 	}
@@ -242,13 +247,21 @@ vector<updateDieInfo*> checkLog() {
 }
 
 void recovery() {
-	// 
+	// 獲取需要更新的資料點資訊
 	vector<updateDieInfo*> lastwill = checkLog();
 
 	// 將更新資訊寫入 log.csv檔案內
 	// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
 	String^ fileName = "log.csv";
-	StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
+	// overwrite the log file, restart logging
+	StreamWriter^ sw = gcnew StreamWriter(fileName, false, System::Text::Encoding::UTF8);
+
+	// 若無資料點需要更新，Early Return
+	if (lastwill.size() <= 0) { 
+		sw->WriteLine("SAVE,-1,-1,-1,-1," + DateTime::Now);
+		sw->Close();
+		return;
+	}
 
 	for (int i = 0; i<lastwill.size(); i++) {
 		// 建立資料庫連線 //
@@ -313,8 +326,9 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		obj = gcnew System::Object();
 
 		// eventually consustency
+		Console::WriteLine("Start Recovery .... ");
 		recovery();
-
+		Console::WriteLine("Stop  Recovery .... ");
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -351,9 +365,6 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 		StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
 		for (int i = 0; i < updateDies.size(); i++) {
 			updateDieInfo* info = updateDies[i];
-
-			// backgroundWorker^ bg = gcnew backgroundWorker(info->DieX, info->DieY, info->LOT_ID);
-			// bgQueue.push_back(bg);
 			sw->WriteLine("UPDATE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
 		}
 		sw->Close();
@@ -385,6 +396,7 @@ System::Void mainForm::updateToDb(System::Void){
 	// TODO : 可選擇安全性, 選擇與資料庫
 	//			1. 同步更新：可確保資料一致性，畫面更改時，資料庫必定已經改好了
 	//			2. 非同步更新：資料不一定一致，畫面更改時，資料庫可能尚未更新。不過會確保資料最終一致
+	// 當前為選項2，採用非同步更新，來加速更新速度
 
 	// 更新命令 主要 由(Region, DieX, DieY) 來 確定更新點位置
 	// construct the command with 3 params : Region, DieX, DieY
