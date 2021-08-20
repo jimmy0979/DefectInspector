@@ -137,9 +137,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainForm.cpp" />
     <ClCompile Include="Map.cpp" />
-    <ClCompile Include="Rendering.cpp" />
+    <ClCompile Include="RecoverManager.cpp" />
     <ClCompile Include="ROI.cpp" />
     <ClCompile Include="SqlCommunicator.cpp" />
+    <ClCompile Include="UpdateDieInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataController.h" />
@@ -150,9 +151,10 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Map.h" />
-    <ClInclude Include="Rendering.h" />
+    <ClInclude Include="RecoverManager.h" />
     <ClInclude Include="ROI.h" />
     <ClInclude Include="SqlCommunicator.h" />
+    <ClInclude Include="UpdateDieInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="legendForm.resx">

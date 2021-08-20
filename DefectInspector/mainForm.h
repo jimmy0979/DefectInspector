@@ -6,6 +6,7 @@
 #include "ROI.h"
 #include "DataController.h"
 #include "SqlCommunicator.h"
+#include "RecoverManager.h"
 #include "legendForm.h"
 
 namespace DefectInspector {
@@ -448,7 +449,7 @@ namespace DefectInspector {
         System::Void UpdateUpdateDies();
 
         //
-        
+        RecoverManager^ recoverManager;
 };
     // namespace DefectInspector
 }
