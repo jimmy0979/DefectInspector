@@ -141,6 +141,7 @@
     <ClCompile Include="ROI.cpp" />
     <ClCompile Include="SqlCommunicator.cpp" />
     <ClCompile Include="UpdateDieInfo.cpp" />
+    <ClCompile Include="UpdateInBackground.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataController.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="ROI.h" />
     <ClInclude Include="SqlCommunicator.h" />
     <ClInclude Include="UpdateDieInfo.h" />
+    <ClInclude Include="UpdateInBackground.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="legendForm.resx">

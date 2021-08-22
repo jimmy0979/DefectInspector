@@ -7,6 +7,7 @@
 #include "DataController.h"
 #include "SqlCommunicator.h"
 #include "RecoverManager.h"
+#include "UpdateInBackground.h"
 #include "legendForm.h"
 
 namespace DefectInspector {
