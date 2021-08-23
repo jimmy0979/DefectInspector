@@ -346,6 +346,27 @@ bool DataControlUnit::change_block(const int& direction)
 	return false;
 }
 
+bool DataControlUnit::move_block(const int& moveX, const int& moveY)
+{
+	if (moveX == 0 && moveY == 0)
+		return false;
+	switch (this->level) {
+	case 0:
+		this->level_0_x += moveX;
+		this->level_0_y += moveY;
+		break;
+	case 1:
+		this->level_1_x += moveX;
+		this->level_1_y += moveY;
+		break;
+	case 2:
+		this->level_2_x += moveX;
+		this->level_2_y += moveY;
+	}
+	return true;
+}
+
+
 bool DataControlUnit::change_filter(const int& type)//change the type of dies you can visible
 {
 	if ((int)this->filter_variable != type) {

@@ -103,6 +103,7 @@ public:
 	/*變更狀態相關*/
 	bool change_level(const bool&);//變更縮放等級，並且回傳是否變更成功
 	bool change_block(const int&);//向指定方向位移一格。0向左 1向右 2向上 3向下。回傳是否位移成功
+	bool move_block(const int& moveX, const int& moveY);//提供一個向量，格子依此向量方向移動
 	bool return_map_change(void);//位移一格後，是否map需要更新。ture需要 false不需要
 	bool change_filter(const int&);//變更篩選類別，並且回傳是否變更成功
 

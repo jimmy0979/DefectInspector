@@ -438,8 +438,9 @@ namespace DefectInspector {
         System::Void UpdateInfoText(String^ uText, int mode);
         System::Void setLoading(bool displayLoader);
 
-        // for drop & amplify
+        // for drop & amplify & slip
         System::Void Drop(int dir);
+        System::Void Slip(int moveX,int moveY);
         System::Void Amplify(bool amplifyFlag);
 
         // Plots & Info lists

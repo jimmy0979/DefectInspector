@@ -330,9 +330,12 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		// 計算 當前晶粒點 與 前一晶粒點 位移
 		int yDisplace = yPosition - yCurrent, xDisplace = xPosition - xCurrent;
 
+		//Slip block
+		Slip(xDisplace,yDisplace);
+
 		// directions : {0: left, 1: right, 2: up, 3: down}
 		// yDisplace movement
-		for (int i = 0; i < abs(yDisplace); i++) {
+		/*for (int i = 0; i < abs(yDisplace); i++) {
 			int dir = (yDisplace > 0) ? 3 : 2;
 			Drop(dir);
 		}
@@ -340,7 +343,7 @@ System::Void mainForm::imgMap_MouseDown(System::Object^ sender, System::Windows:
 		for (int i = 0; i < abs(xDisplace); i++) {
 			int dir = (xDisplace > 0) ? 1 : 0;
 			Drop(dir);
-		}
+		}*/
 
 		// 其他即時資訊更新
 		updateRealTimeInfo();
@@ -820,6 +823,22 @@ System::Void mainForm::Drop(int dir) {
 	if (data_controller->return_map_change()) {
 		imgMap->Image = MatToBitmap(die_map->show(data_controller->pull_data(false), data_controller->return_locat_x(), data_controller->return_locat_y()));
 	}
+	// 更新 當前所處的晶粒格子點位置
+	xCurrent = data_controller->return_locat_x();
+	yCurrent = data_controller->return_locat_y();
+	// lblInfo->Text = "xCurrent=" + xCurrent + "\nyCurrent=" + yCurrent;
+}
+
+System::Void DefectInspector::mainForm::Slip(int moveX, int moveY)
+{
+	//輸入一個向量，依照向量方向移動，並更新當前畫面
+
+	// 呼叫 DataController
+	if (data_controller->move_block(moveX, moveY)) {
+		imgMap->Image = MatToBitmap(die_map->relocate(data_controller->return_locat_x(), data_controller->return_locat_y()));
+		imgROI->Image = MatToBitmap(roi->show(data_controller->pull_data(true), data_controller->return_level()), true);
+	}
+
 	// 更新 當前所處的晶粒格子點位置
 	xCurrent = data_controller->return_locat_x();
 	yCurrent = data_controller->return_locat_y();
