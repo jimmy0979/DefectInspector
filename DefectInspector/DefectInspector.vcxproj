@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="DataController.cpp" />
     <ClCompile Include="legendForm.cpp" />
+    <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainForm.cpp" />
     <ClCompile Include="Map.cpp" />
@@ -141,12 +142,14 @@
     <ClCompile Include="ROI.cpp" />
     <ClCompile Include="SqlCommunicator.cpp" />
     <ClCompile Include="UpdateDieInfo.cpp" />
+    <ClCompile Include="UpdateInBackground.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataController.h" />
     <ClInclude Include="legendForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="LogManager.h" />
     <ClInclude Include="mainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -155,6 +158,7 @@
     <ClInclude Include="ROI.h" />
     <ClInclude Include="SqlCommunicator.h" />
     <ClInclude Include="UpdateDieInfo.h" />
+    <ClInclude Include="UpdateInBackground.h" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="legendForm.resx">

@@ -7,6 +7,8 @@
 #include "DataController.h"
 #include "SqlCommunicator.h"
 #include "RecoverManager.h"
+#include "LogManager.h"
+#include "UpdateInBackground.h"
 #include "legendForm.h"
 
 namespace DefectInspector {
@@ -450,6 +452,7 @@ namespace DefectInspector {
 
         //
         RecoverManager^ recoverManager;
+        LogManager^ logManager;
 };
     // namespace DefectInspector
 }

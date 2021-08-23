@@ -100,14 +100,9 @@ void RecoverManager::recovery() {
 
 	// 將更新資訊寫入 log.csv檔案內
 	// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
-	String^ fileName = "log.csv";
-	// overwrite the log file, restart logging
-	StreamWriter^ sw = gcnew StreamWriter(fileName, false, System::Text::Encoding::UTF8);
-
 	// 若無資料點需要更新，Early Return
 	if (lastwill.size() <= 0) {
-		sw->WriteLine("SAVE,-1,-1,-1,-1," + DateTime::Now);
-		sw->Close();
+		logManager->checkSave();
 		return;
 	}
 
@@ -117,7 +112,8 @@ void RecoverManager::recovery() {
 
 		updateDieInfo* info = lastwill[i];
 
-		sw->WriteLine("RECOVER," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		// sw->WriteLine("RECOVER," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		logManager->recoveryToUpdate(info);
 
 		// 建構 SQL 命令 (遵循 SQL 語法)
 		// 以 stringstream 建構 命令字串
@@ -139,8 +135,7 @@ void RecoverManager::recovery() {
 		updateSql->close();
 
 
-		sw->WriteLine("DONE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		// sw->WriteLine("DONE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		logManager->doneUpdate(info);
 	}
-
-	sw->Close();
 }
