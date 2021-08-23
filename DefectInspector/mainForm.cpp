@@ -1,16 +1,11 @@
 #include "mainForm.h"
-#include "Rendering.h"
 
 #include <time.h>
-
 #include <random>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <queue>
-
-#include <fstream>
-
 #include <thread>
 
 #include <opencv2\imgproc\types_c.h>
@@ -19,13 +14,89 @@ using namespace DefectInspector;
 using namespace System::Windows::Forms::DataVisualization::Charting;
 using namespace System::Threading;
 using namespace System::IO;
+using namespace System::Diagnostics;
 
-typedef struct _updateDieInfo {
-	// 更新晶粒資料
-	int LOT_ID = 0;
-	int DieX = 0, DieY = 0;;
-	_updateDieInfo(int LOT_ID, int DieX, int DieY) :LOT_ID(LOT_ID), DieX(DieX), DieY(DieY) {}
-} updateDieInfo;
+//---------------------------------------------------------------------
+// 資料庫聯絡
+
+static int totIndex = 0;
+
+ref class backgroundWorker {
+private:
+	static Object^ obj = gcnew Object();
+	static int txnIndex = 0;
+
+	const wchar_t* connectStr;
+	// const wchar_t* command;
+	int index;
+	int DieX, DieY, LOT_ID;
+public:
+	backgroundWorker(int DieX, int DieY, int LOT_ID) {
+		// ConnectStr
+		connectStr = L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;";
+
+		// 
+		this->index = txnIndex++;
+		this->DieX = DieX;
+		this->DieY = DieY;
+		this->LOT_ID = LOT_ID;
+	}
+
+	void setConnectStr(const wchar_t* connectStr) { this->connectStr = connectStr; }
+	int get_Id() { return this->index; }
+	int get_LotId() { return this->LOT_ID; }
+	int get_DieX() { return this->DieX; }
+	int get_DieY() { return this->DieY; }
+
+	void running() {
+
+		// 建立資料庫連線 //
+		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+
+		// 建構 SQL 命令 (遵循 SQL 語法)
+		// 以 stringstream 建構 命令字串
+		stringstream ss;
+
+		ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
+		ss << " WHERE [DieX] = " << this->DieX << " AND [DieY] = " << this->DieY;
+		ss << " AND [Region] = " << this->LOT_ID << " ;";
+
+		//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
+		//ss << " SET [DefectType] = 0";
+		//ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+		//ss << " AND [Region] = " << info->LOT_ID << ";";
+
+		// 將 string 轉換為 wstring, 以供 SqlCommuncator 使用
+		// convert string -> wstring
+		string sqlCommand = ss.str();
+		wstring updateSqlCommand(sqlCommand.begin(), sqlCommand.end());
+
+		// command = updateSqlCommand.c_str();
+
+		// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
+		// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
+		// send the UPDATE command to SqlCommunicator
+		// Console::WriteLine(command);
+		SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
+		updateSql->close();
+
+		// 撰寫進檔案時，以 Mutex鎖 鎖住IO資源，避免 Race Condition
+		Monitor::Enter(obj);
+		try
+		{
+			// 將更新資訊寫入 log.csv檔案內
+			// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
+			String^ fileName = "log.csv";
+			StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
+			sw->WriteLine("DONE," + this->index + "," + DieX + "," + DieY + "," + LOT_ID + "," + DateTime::Now);
+			sw->Close();
+		}
+		finally
+		{
+			Monitor::Exit(obj);
+		}
+	}
+};
 
 //===============================
 // Global Variables Declartion
@@ -50,6 +121,9 @@ static vector<updateDieInfo*> updateDies;	// 儲存準備更新之晶粒資訊
 static string updateInfoLog;				// 更新歷史紀錄，可供回顧或反悔用 (TODO: 反悔功能)
 
 // 更新資料點
+static int updateIndex;
+// vector<backgroundWorker^> bgQueue;
+vector<updateDieInfo*> bgQueue;
 
 // 疊圖
 static vector<cv::Mat> comparedFrames;		// 儲存準備疊圖比較之 Frame 圖
@@ -71,8 +145,8 @@ System::Drawing::Bitmap^ MatToBitmap(cv::Mat img, bool isROI = false) {
 }
 
 //---------------------------------------------------------------------
+//---------------------------------------------------------------------
 // 事件觸發 函式實踐區
-
 System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ e) {
 	// mainForm_load
 	try {
@@ -96,7 +170,14 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		this->pictLoading->Parent = this->imgROI;
 
 		// for mutex lock
+		updateIndex = 0;
 		obj = gcnew System::Object();
+
+		// eventually consustency
+		Console::WriteLine("Start Recovery .... ");
+		recoverManager = gcnew RecoverManager();
+		recoverManager->recovery();
+		Console::WriteLine("Stop  Recovery .... ");
 	}
 	catch (System::Exception^ e) {
 		lblInfo->Text = e->Message;
@@ -130,10 +211,10 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 		// 將更新資訊寫入 log.csv檔案內
 		// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
 		String^ fileName = "log.csv";
-		StreamWriter^ sw = gcnew StreamWriter(fileName, false, System::Text::Encoding::UTF8);
+		StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
 		for (int i = 0; i < updateDies.size(); i++) {
 			updateDieInfo* info = updateDies[i];
-			sw->WriteLine("UPDATE," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+			sw->WriteLine("UPDATE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
 		}
 		sw->Close();
 
@@ -164,71 +245,43 @@ System::Void mainForm::updateToDb(System::Void){
 	// TODO : 可選擇安全性, 選擇與資料庫
 	//			1. 同步更新：可確保資料一致性，畫面更改時，資料庫必定已經改好了
 	//			2. 非同步更新：資料不一定一致，畫面更改時，資料庫可能尚未更新。不過會確保資料最終一致
+	// 當前為選項2，採用非同步更新，來加速更新速度
 
 	// 更新命令 主要 由(Region, DieX, DieY) 來 確定更新點位置
 	// construct the command with 3 params : Region, DieX, DieY
 	int size = updateDies.size();
 	for (int i = 0; i < size; i++) {
-		updateDieInfo* info = updateDies[i];
-
 		// 建立資料庫連線 //
-		SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
+		// SqlCommunicator* updateSql = new SqlCommunicator(L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;");
 
 		// 將更新資訊上傳至資料庫 //
-		// 建構 SQL 命令 (遵循 SQL 語法)
-		// 以 stringstream 建構 命令字串
-		stringstream ss;
-
-		ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
-		ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
-		ss << " AND [Region] = " << info->LOT_ID << " ;";
-
-		//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
-		//ss << " SET [DefectType] = 0";
-		//ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
-		//ss << " AND [Region] = " << info->LOT_ID << ";";
-
-		// 將 string 轉換為 wstring, 以供 SqlCommuncator 使用
-		// convert string -> wstring
-		string sqlCommand = ss.str();
-		wstring updateSqlCommand(sqlCommand.begin(), sqlCommand.end());
-
-		// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
-		// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
-		// send the UPDATE command to SqlCommunicator
-		SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
-		updateSql->close();
-
+		//// 呼叫 sqlCommand() 將命令 上傳 SQL Server, 上傳結束後關閉連線
+		//// 若 SQL執行失敗, 會直接進入 catch 區域, 並顯示錯誤原因
+		//// send the UPDATE command to SqlCommunicator
+		//SQLHSTMT hstmt = updateSql->sqlCommand(updateSqlCommand.c_str());
+		//updateSql->close();
 		
-		Monitor::Enter(obj);
-		try
-		{
-			// 將更新資訊寫入 log.csv檔案內
-			// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
-			String^ fileName = "log.csv";
-			StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
-			sw->WriteLine("DONE," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
-			sw->Close();
-		}
-		finally
-		{
-			Monitor::Exit(obj);
-		}
+		updateDieInfo* info = updateDies[i];
+
+		backgroundWorker^ bg = gcnew backgroundWorker(info->DieX, info->DieY, info->LOT_ID);
+		// backgroundWorker^ bg = bgQueue[i];
+		Thread^ thread1 = gcnew Thread(gcnew ThreadStart(bg, &backgroundWorker::running));
+		thread1->Start();
 
 		// 本地端資料更新 //
 		// 本地端 呼叫 DataController::update_data() 更新
 		// update local data_controller
-		int abs_diex = 1000 * ((info->LOT_ID - 1) % 10) + info->DieX;
-		int abs_diey = 1000 * ((info->LOT_ID - 1) / 10) + info->DieY;
+		int abs_diex = 1000 * ((bg->get_LotId() - 1) % 10) + bg->get_DieX();
+		int abs_diey = 1000 * ((bg->get_LotId() - 1) / 10) + bg->get_DieY();
 		data_controller->update_data(abs_diex, abs_diey);
 
 		// 更新 ROI 圖案
 		Drop(1);
 		Drop(0);
 
-		// 紀錄歷史更新資訊 //
-		// append on Log
-		updateInfoLog += sqlCommand;
+		//// 紀錄歷史更新資訊 //
+		//// append on Log
+		//updateInfoLog += sqlCommand;
 	}
 	
 	// 更新完成，清空容器
@@ -374,7 +427,7 @@ System::Void mainForm::imgROI_MouseDown(System::Object^ sender, System::Windows:
 		this->tctrlInfo->SelectedIndex = 1;
 		
 		// 將資料 存進 updateDies 容器內 //
-		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY));
+		updateDies.push_back(new updateDieInfo(LOT_ID, DieX, DieY, totIndex++));
 	}
 }
 
