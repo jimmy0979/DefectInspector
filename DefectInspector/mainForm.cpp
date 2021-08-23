@@ -95,6 +95,9 @@ System::Void mainForm::mainForm_Load(System::Object^ sender, System::EventArgs^ 
 		updateIndex = 0;
 		obj = gcnew System::Object();
 
+		//
+		logManager = gcnew LogManager();
+
 		// eventually consustency
 		Console::WriteLine("Start Recovery .... ");
 		recoverManager = gcnew RecoverManager();
@@ -132,13 +135,15 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 	try {
 		// 將更新資訊寫入 log.csv檔案內
 		// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
-		String^ fileName = "log.csv";
-		StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
-		for (int i = 0; i < updateDies.size(); i++) {
-			updateDieInfo* info = updateDies[i];
-			sw->WriteLine("UPDATE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
-		}
-		sw->Close();
+		//String^ fileName = "log.csv";
+		//StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
+		//for (int i = 0; i < updateDies.size(); i++) {
+		//	updateDieInfo* info = updateDies[i];
+		//	sw->WriteLine("UPDATE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
+		//}
+		//sw->Close();
+
+		logManager->guaranteeToUpdate(updateDies);
 
 		// 另外開執行續執行
 		Thread^ thr1 = gcnew ::Thread(gcnew ThreadStart(this, &mainForm::updateToDb));
@@ -185,7 +190,7 @@ System::Void mainForm::updateToDb(System::Void){
 		
 		updateDieInfo* info = updateDies[i];
 
-		UpdateInBackground^ bg = gcnew UpdateInBackground(info->DieX, info->DieY, info->LOT_ID);
+		UpdateInBackground^ bg = gcnew UpdateInBackground(info);
 		Thread^ thread1 = gcnew Thread(gcnew ThreadStart(bg, &UpdateInBackground::running));
 		thread1->Start();
 

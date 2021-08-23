@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="DataController.cpp" />
     <ClCompile Include="legendForm.cpp" />
+    <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainForm.cpp" />
     <ClCompile Include="Map.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="legendForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="LogManager.h" />
     <ClInclude Include="mainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

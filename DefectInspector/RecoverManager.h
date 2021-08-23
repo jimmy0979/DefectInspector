@@ -1,5 +1,6 @@
 #pragma once
 #include "UpdateDieInfo.h"
+#include "LogManager.h"
 
 #include <vector>
 #include <string>
@@ -12,6 +13,9 @@ private:
 	vector<string> csvSplit(string csvLog);
 	// 檢查 Log 檔案，並回傳 需要更新點的 資訊
 	vector<updateDieInfo*> checkLog();
+
+	//
+	static LogManager^ logManager = gcnew LogManager();
 
 public:
 	// Constructors

@@ -7,15 +7,17 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Threading;
 
-UpdateInBackground::UpdateInBackground(int DieX, int DieY, int LOT_ID) {
+UpdateInBackground::UpdateInBackground(updateDieInfo* info) {
 	// ConnectStr
 	connectStr = L"Driver={ODBC Driver 17 for SQL Server};server=localhost;database=test;trusted_connection=Yes;";
 
-	// 
-	this->index = txnIndex++;
-	this->DieX = DieX;
-	this->DieY = DieY;
-	this->LOT_ID = LOT_ID;
+	this->info = info;
+
+	//// 
+	//this->index = txnIndex++;
+	//this->DieX = DieX;
+	//this->DieY = DieY;
+	//this->LOT_ID = LOT_ID;
 }
 
 void UpdateInBackground::setConnectStr(const wchar_t* connectStr) { this->connectStr = connectStr; }
@@ -30,8 +32,8 @@ void UpdateInBackground::running() {
 	stringstream ss;
 
 	ss << "DELETE FROM [test].[dbo].[2274_DefectData_TEST_PartALL]";
-	ss << " WHERE [DieX] = " << this->DieX << " AND [DieY] = " << this->DieY;
-	ss << " AND [Region] = " << this->LOT_ID << " ;";
+	ss << " WHERE [DieX] = " << info->DieX << " AND [DieY] = " << info->DieY;
+	ss << " AND [Region] = " << info->LOT_ID << " ;";
 
 	//ss << "UPDATE [test].[dbo].[2274_DefectData_TEST_PartALL]";
 	//ss << " SET [DefectType] = 0";
@@ -65,10 +67,12 @@ void UpdateInBackground::running() {
 	{
 		// 將更新資訊寫入 log.csv檔案內
 		// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
-		String^ fileName = "log.csv";
-		StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
-		sw->WriteLine("DONE," + this->index + "," + DieX + "," + DieY + "," + LOT_ID + "," + DateTime::Now);
-		sw->Close();
+		//String^ fileName = "log.csv";
+		//StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
+		//sw->WriteLine("DONE," + this->index + "," + DieX + "," + DieY + "," + LOT_ID + "," + DateTime::Now);
+		//sw->Close();
+
+		logManager->doneUpdate(info);
 	}
 	finally
 	{

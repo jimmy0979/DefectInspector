@@ -45,6 +45,9 @@
     <ClCompile Include="UpdateInBackground.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="LogManager.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainForm.h">
@@ -72,6 +75,9 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="UpdateInBackground.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="LogManager.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
