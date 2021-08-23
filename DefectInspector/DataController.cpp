@@ -582,6 +582,54 @@ bool DataControlUnit::delete_statistics(const int& x, const int& y) {/*未寫完
 	return false;
 }
 
+void DataControlUnit::classify_BFS(const int range_x, const int range_y)
+{
+	bool vist[100][100] = { false };
+	queue<pair<int, int>> q;
+	data_unit temp;
+	int curr_x = 0;
+	int curr_y = 0;
+	int curr_counts;
+	int i = 0, j = 0;
+	while (true){
+		//設定起始點
+		while(i < 100){
+			while(j < 100){
+				if (!vist[i][j]) {
+					if (this->index[i + range_y * 100][j + range_x * 100] != nullptr) {
+						temp = *this->index[i + range_y * 100][j + range_x * 100];
+						//BFS
+						curr_counts = 0;
+						q.push(pair<int, int>(i, j));
+						while(!q.empty()){
+							if (q.front().first > 0 && q.front().first < 100 && q.front().second > 0 && q.front().second < 100) {
+								if (!vist[q.front().first][q.front().second]) {
+									if (*this->index[q.front().first + range_y * 100][q.front().second + range_x * 100] == temp) {
+										++curr_counts;
+										vist[q.front().first][q.front().second] = true;
+										q.push(pair<int, int>(q.front().first + 1, q.front().second));
+										q.push(pair<int, int>(q.front().first - 1, q.front().second));
+										q.push(pair<int, int>(q.front().first, q.front().second + 1));
+										q.push(pair<int, int>(q.front().first, q.front().second - 1));
+									}
+								}
+							}
+							q.pop();
+						}
+						insert_statistics(range_x * 100,range_y * 100,&temp,curr_counts);
+					}
+					else {
+						vist[i][j] = true;
+					}
+				}
+				j++;
+			}
+			j = 0;
+			++i;
+		}
+	}
+}
+
 void DataControlUnit::Statistics_node::insert(const int& x, const int& y){
 	node_count_level_0[(y / 1000) * 10 + (x / 1000)]++;
 	node_count_level_1[(y / 100) * 100 + (x / 100)]++;

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <queue>
 #include <utility>
 
 using namespace std;
@@ -31,6 +32,7 @@ private:
 	{
 		int defect_type = -1;//-1代表沒有defect
 		string bin_code;//5 digts
+		Data_Unit() {}
 		Data_Unit(const int& defect) : defect_type(defect){}
 		Data_Unit(const int& defect,const string& bin) :defect_type(defect),bin_code(bin){}
 		bool operator== (const struct Data_Unit& comp) const;//差bincode比對
@@ -82,6 +84,7 @@ private:
 	int last_locate_x = -1, last_locate_y = -1;
 	int counts = 0;
 	data_unit register_data = data_unit(-1);
+	void classify_BFS(const int range_x,const int range_y);
 
 public:
 	
@@ -135,17 +138,4 @@ public:
 	}
 };
 
-//filter code 篩選條件的編碼
-/*
-	一組filter code會由至少兩碼組成
-	第一碼為set bit
-	第二碼為type bit
-	規則如下
-	set bit = 0 篩選範圍為全部同種類的
-	        = 1 篩選的為特定一種種類
-	type bit = 0 篩選好的晶粒 if set bit = 0 , type bit = 0 篩選bin code
-	         = 1 篩選壞的晶粒                           = 1 篩選defect 
-	剩下的位碼
-	if set bit = 1 type bit = 1 則只需一位代表缺陷類型
-	bin code等之後再編碼
-*/
+
