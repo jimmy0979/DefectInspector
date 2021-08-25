@@ -135,14 +135,6 @@ System::Void mainForm::btnUpdate_Click(System::Object^ sender, System::EventArgs
 	try {
 		// 將更新資訊寫入 log.csv檔案內
 		// 這些寫入資料 承諾 會更新回資料庫，若沒有對應回傳的話，代表更新失敗
-		//String^ fileName = "log.csv";
-		//StreamWriter^ sw = gcnew StreamWriter(fileName, true, System::Text::Encoding::UTF8);
-		//for (int i = 0; i < updateDies.size(); i++) {
-		//	updateDieInfo* info = updateDies[i];
-		//	sw->WriteLine("UPDATE," + info->index + "," + info->DieX + "," + info->DieY + "," + info->LOT_ID + "," + DateTime::Now);
-		//}
-		//sw->Close();
-
 		logManager->guaranteeToUpdate(updateDies);
 
 		// 另外開執行續執行

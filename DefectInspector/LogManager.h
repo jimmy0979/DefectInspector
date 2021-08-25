@@ -17,5 +17,7 @@ public:
 	void recoveryToUpdate(updateDieInfo* info);
 	void doneUpdate(updateDieInfo* info);
 	void checkSave();
+
+	void clear();
 };
 

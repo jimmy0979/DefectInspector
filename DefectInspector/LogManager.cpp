@@ -8,6 +8,21 @@ LogManager::LogManager() {
 
 }
 
+void LogManager::clear() {
+	// 撰寫進檔案時，以 Mutex鎖 鎖住IO資源，避免 Race Condition
+	Monitor::Enter(writeLock);
+	try
+	{
+		String^ filePath = "log.csv";
+		StreamWriter^ sw = gcnew StreamWriter(filePath, false, System::Text::Encoding::UTF8);
+		sw->Close();
+	}
+	finally
+	{
+		Monitor::Exit(writeLock);
+	}
+}
+
 void LogManager::guaranteeToUpdate(vector<updateDieInfo*> infos) {
 	//
 

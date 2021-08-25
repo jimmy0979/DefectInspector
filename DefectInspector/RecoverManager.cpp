@@ -55,7 +55,7 @@ vector<updateDieInfo*> RecoverManager::checkLog() {
 	}
 
 	int n = content.size();
-	set<int> txnsDone;
+	set<int> txnsDone, inLastwill;
 	vector<updateDieInfo*> lastwill;
 
 	// 將檔案內容由後至前 開始一一讀取
@@ -71,6 +71,11 @@ vector<updateDieInfo*> RecoverManager::checkLog() {
 			txnsDone.insert(txnIndex);
 		}
 		else if (txnCode == "UPDATE" || txnCode == "RECOVER") {
+			
+			// 若該 更新Index 已經進入更新列表 (lastwill內)，則提早退出，避免二次更新
+			if (inLastwill.find(txnIndex) != inLastwill.end())
+				continue;
+
 			// 若交易類型為 RECOVER 或 UPDATE，代表交易接受，但還未知此交易是否成功更新至資料庫
 			// if txnIndex don't exist in txnDone, it means that this txns broke. 
 			if (txnsDone.find(txnIndex) == txnsDone.end()) {
@@ -80,9 +85,10 @@ vector<updateDieInfo*> RecoverManager::checkLog() {
 				// 更新晶粒資料
 				int DieX = stoi(split[2]), DieY = stoi(split[3]);
 				int LOT_ID = stoi(split[4]);
-				lastwill.push_back(new updateDieInfo(LOT_ID, DieX, DieY, txnIndex));
 
-				System::Console::WriteLine(txnIndex);
+				// RECOVER 的 txnIndex 為負號，以此跟正常更新 Die 做區分
+				lastwill.push_back(new updateDieInfo(LOT_ID, DieX, DieY, txnIndex));
+				inLastwill.insert(txnIndex);
 			}
 		}
 	}
