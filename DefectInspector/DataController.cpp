@@ -443,42 +443,37 @@ cv::Scalar DataControlUnit::decide_color_roi(const data_unit* input_data)
 }
 cv::Scalar DataControlUnit::decide_color_map(const double& percent)
 {
-	int v1, v2;//三個顏色的數值
+	int v1;//其他兩個顏色的數值
 	if (percent > 0.49) {//the value of percent more large means this type data ocuppy more area
 		//Light 50%
 		v1 = 0;
-		v2 = 255;
 	}
 	else if (percent > 0.24){
 		//65%
 		v1 = 77;
-		v2 = 255;
 	}
 	else if (percent > 0.124){
 		//75%
 		v1 = 128;
-		v2 = 204;
 	}
 	else if (percent > 0.0624){
 		//85%
 		v1 = 179;
-		v2 = 185;
 	}
 	else if (percent > 0.03124){
 		//95%
 		v1 = 230;
-		v2 = 159;
 	}
 	else{
 		//100%
-		v1 = v2 = 255;
+		v1  = 255;
 	}
 	switch (DataControlUnit::filter_variable)//check exist defect or not
 	{
 	case Data_type::Alldefect:
-		return cv::Scalar(v1, v1, v2);
+		return cv::Scalar(v1, v1, 255);
 	case Data_type::NormalDies:
-		return cv::Scalar(v1, v2, v1);
+		return cv::Scalar(v1, 255, v1);
 	}
 }
 
@@ -612,42 +607,40 @@ void DataControlUnit::classify_BFS(const int range_x, const int range_y)
 	int curr_y = 0;
 	int curr_counts;
 	int i = 0, j = 0;
-	while (true){
-		//設定起始點
-		while(i < 100){
-			while(j < 100){
-				if (!vist[i][j]) {
-					if (this->index[i + range_y * 100][j + range_x * 100] != nullptr) {
-						temp = *this->index[i + range_y * 100][j + range_x * 100];
-						//BFS
-						curr_counts = 0;
-						q.push(pair<int, int>(i, j));
-						while(!q.empty()){
-							if (q.front().first > 0 && q.front().first < 100 && q.front().second > 0 && q.front().second < 100) {
-								if (!vist[q.front().first][q.front().second]) {
-									if (*this->index[q.front().first + range_y * 100][q.front().second + range_x * 100] == temp) {
-										++curr_counts;
-										vist[q.front().first][q.front().second] = true;
-										q.push(pair<int, int>(q.front().first + 1, q.front().second));
-										q.push(pair<int, int>(q.front().first - 1, q.front().second));
-										q.push(pair<int, int>(q.front().first, q.front().second + 1));
-										q.push(pair<int, int>(q.front().first, q.front().second - 1));
-									}
+	//設定起始點
+	while(i < 100){
+		while(j < 100){
+			if (!vist[i][j]) {
+				if (this->index[i + range_y * 100][j + range_x * 100] != nullptr) {
+					temp = *this->index[i + range_y * 100][j + range_x * 100];
+					//BFS
+					curr_counts = 0;
+					q.push(pair<int, int>(i, j));
+					while(!q.empty()){
+						if (q.front().first > 0 && q.front().first < 100 && q.front().second > 0 && q.front().second < 100) {
+							if (!vist[q.front().first][q.front().second]) {
+								if (*this->index[q.front().first + range_y * 100][q.front().second + range_x * 100] == temp) {
+									++curr_counts;
+									vist[q.front().first][q.front().second] = true;
+									q.push(pair<int, int>(q.front().first + 1, q.front().second));
+									q.push(pair<int, int>(q.front().first - 1, q.front().second));
+									q.push(pair<int, int>(q.front().first, q.front().second + 1));
+									q.push(pair<int, int>(q.front().first, q.front().second - 1));
 								}
 							}
-							q.pop();
 						}
-						insert_statistics(range_x * 100,range_y * 100,&temp,curr_counts);
+						q.pop();
 					}
-					else {
-						vist[i][j] = true;
-					}
+					insert_statistics(range_x * 100,range_y * 100,&temp,curr_counts);
 				}
-				j++;
+				else {
+					vist[i][j] = true;
+				}
 			}
-			j = 0;
-			++i;
+			++j;
 		}
+		j = 0;
+		++i;
 	}
 }
 
